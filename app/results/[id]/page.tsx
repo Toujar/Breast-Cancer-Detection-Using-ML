@@ -42,6 +42,35 @@ interface PredictionResult {
   userId: string;
 }
 
+
+const hospitals = [
+  { name: "KCTRI – Karnataka Cancer Therapy & Research Institute", city: "Hubli" },
+  { name: "HCG NMR Cancer Centre", city: "Hubli" },
+  { name: "HCG Cancer Centre", city: "Kalaburagi" },
+  { name: "KLE’s Dr. Prabhakar Kore Hospital", city: "Belagavi" },
+  { name: "KIMS – Karnataka Institute of Medical Sciences", city: "Hubli" },
+  { name: "Basaveshwara Teaching & General Hospital", city: "Kalaburagi" },
+  { name: "Sushruta Hospitals", city: "Hubli-Dharwad" },
+  { name: "KS Hospital", city: "Koppal" },
+];
+
+const doctors = [
+  { name: "Dr. Sanjeev Kulgod – Surgical Oncologist", city: "Hubli" },
+  { name: "Dr. G. Mehar Kumar – Medical & Radiation Oncology", city: "Hubli" },
+  { name: "Dr. Vishwas Pai – Surgical Oncologist", city: "Bagalkot" },
+  { name: "Dr. Rekha Nayak – Radiation Oncologist", city: "Belagavi" },
+];
+
+const diagnostics = [
+  { name: "HCG NMR Diagnostic & Imaging Centre", city: "Hubli" },
+  { name: "Medall Clumax Diagnostics", city: "Belagavi" },
+  { name: "Shree Diagnostic Centre", city: "Kalaburagi" },
+  { name: "Dr. Lal PathLabs & Thyrocare Centres", city: "Multiple locations" },
+];
+
+
+
+
 export default function ResultsPage() {
   // const { user } = useAuth();
   const router = useRouter();
@@ -49,7 +78,9 @@ export default function ResultsPage() {
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [user, setUser] = useState<{ email: string; username: string; role: string } | null>(null);
+  // const [user, setUser] = useState<{ email: string; username: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; username: string; role: string; location?: string } | null>(null);
+
 
   const predictionId = params.id as string;
 
@@ -68,6 +99,34 @@ export default function ResultsPage() {
     fetchUser();
   }, []);
 
+  const [sortedHospitals, setSortedHospitals] = useState(hospitals);
+  const [sortedDoctors, setSortedDoctors] = useState(doctors);
+  const [sortedDiagnostics, setSortedDiagnostics] = useState(diagnostics);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setSortedHospitals([...hospitals].sort((a, b) => {
+      if (a.city === user.location && b.city !== user.location) return -1;
+      if (a.city !== user.location && b.city === user.location) return 1;
+      return 0;
+    }));
+
+    setSortedDoctors([...doctors].sort((a, b) => {
+      if (a.city === user.location && b.city !== user.location) return -1;
+      if (a.city !== user.location && b.city === user.location) return 1;
+      return 0;
+    }));
+
+    setSortedDiagnostics([...diagnostics].sort((a, b) => {
+      if (a.city === user.location && b.city !== user.location) return -1;
+      if (a.city !== user.location && b.city === user.location) return 1;
+      return 0;
+    }));
+  }, [user]);
+
+
+  // console.log(sortedHospitals, sortedDoctors, sortedDiagnostics);
   useEffect(() => {
     // if (!user) {
     //   router.push('/auth');
@@ -110,6 +169,8 @@ export default function ResultsPage() {
       setIsLoading(false);
     }
   };
+
+
 
   const handleDownloadReport = async () => {
     try {
@@ -212,6 +273,27 @@ export default function ResultsPage() {
   ];
 
   const COLORS = ['#3B82F6', '#E5E7EB'];
+
+  const [gradcam, setGradcam] = useState<string | null>(null);
+  const [loadingGradcam, setLoadingGradcam] = useState(false);
+
+  useEffect(() => {
+    if (result?.type === "image") fetchGradCAM();
+  }, [result]);
+
+  const fetchGradCAM = async () => {
+    try {
+      setLoadingGradcam(true);
+      const res = await fetch(`/api/results/${predictionId}/gradcam`);
+      const data = await res.json();
+      if (data.success) setGradcam(data.gradcam);
+    } catch (err) {
+      console.error("Grad-CAM fetch error", err);
+    } finally {
+      setLoadingGradcam(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -330,6 +412,36 @@ export default function ResultsPage() {
           </CardContent>
         </Card>
 
+        {/* Grad-CAM heatmap for image-based predictions */}
+        {result.type === 'image' && (
+          <Card className="border-0 shadow-xl rounded-lg hover:shadow-2xl transition mt-8">
+            <CardHeader className="bg-gradient-to-r from-orange-600 to-pink-600 text-white p-4 rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2">
+                <Brain className="h-5 w-5" />
+                <span>Model Explainability (Grad-CAM)</span>
+              </CardTitle>
+              <CardDescription className="text-gray-200">
+                Heatmap showing which regions influenced the AI decision most
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 flex justify-center items-center">
+              {loadingGradcam ? (
+                <div className="flex flex-col items-center">
+                  <Loader2 className="h-8 w-8 text-orange-500 animate-spin mb-3" />
+                  <p className="text-gray-600">Generating Grad-CAM visualization...</p>
+                </div>
+              ) : gradcam ? (
+                <img
+                  src={gradcam}
+                  alt="Grad-CAM Heatmap"
+                  className="rounded-lg shadow-lg border border-gray-200 w-full max-w-md"
+                />
+              ) : (
+                <p className="text-gray-600 text-center">No Grad-CAM visualization available</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Analysis Details */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
@@ -406,44 +518,7 @@ export default function ResultsPage() {
 
 
         {/* Medical Interpretation */}
-        {/* <Card className="border-0 shadow-lg mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span>Clinical Interpretation</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {result.prediction === 'benign' ? (
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Benign Classification:</strong> The AI analysis indicates characteristics
-                  consistent with non-cancerous tissue. However, this should not replace professional
-                  medical evaluation. Continue with regular screening as recommended by your healthcare provider.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Malignant Classification:</strong> The AI analysis has detected patterns
-                  that may indicate cancerous tissue. Immediate follow-up with a qualified oncologist
-                  is strongly recommended for comprehensive evaluation and treatment planning.
-                </AlertDescription>
-              </Alert>
-            )}
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">Important Medical Disclaimer</h4>
-              <p className="text-sm text-blue-800 leading-relaxed">
-                This AI analysis is intended as a screening tool to assist healthcare professionals.
-                It should not be used as the sole basis for diagnosis or treatment decisions.
-                Always consult with qualified medical professionals for proper diagnosis and care.
-              </p>
-            </div>
-          </CardContent>
-        </Card> */}
         <Card
           className={`border-0 shadow-xl rounded-lg mb-8 transition hover:shadow-2xl 
     ${result.prediction === 'benign' ? 'bg-green-50 border-l-4 border-green-600' : 'bg-red-50 border-l-4 border-red-600'}`}
@@ -489,140 +564,120 @@ export default function ResultsPage() {
 
 
         {/* Recommended Hospitals & Doctors */}
+        {/* Recommended Hospitals & Doctors */}
         <Card className="border-0 shadow-xl mb-10 bg-gradient-to-br from-blue-50 to-indigo-100">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-lg p-4">
             <CardTitle className="flex items-center space-x-2 text-white">
               <Building className="h-5 w-5" />
-              <span>Recommended Hospitals & Oncologists in North Karnataka</span>
+              <span>Recommended Hospitals & Oncologists in Karnataka</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <p className="text-sm text-gray-700 mb-6">
-              Based on your results, it is advised to consult certified oncologists and visit
-              specialized cancer care centres. Below are some top hospitals, diagnostic centres,
-              and doctors in North Karnataka:
+              Based on your location <strong>{user?.location}</strong>, below are nearby and other recommended hospitals, doctors, and diagnostic centres.
             </p>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* Nearby */}
+            <div className="mb-8">
+              <h4 className="font-semibold text-blue-800 mb-3">📍 Nearby Locations</h4>
+
               {/* Hospitals */}
-              <div className="p-5 rounded-lg shadow-md bg-white border-l-4 border-blue-500 hover:shadow-lg transition">
-                <h4 className="font-semibold text-blue-800 mb-3">🏥 Hospitals & Cancer Centres</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                  <li>KCTRI – Karnataka Cancer Therapy & Research Institute, Hubli</li>
-                  <li>HCG NMR Cancer Centre, Hubli</li>
-                  <li>HCG Cancer Centre, Kalaburagi</li>
-                  <li>KLE’s Dr. Prabhakar Kore Hospital, Belagavi</li>
-                  <li>KIMS – Karnataka Institute of Medical Sciences, Hubli</li>
-                  <li>Basaveshwara Teaching & General Hospital, Kalaburagi</li>
-                  <li>Sushruta Hospitals, Hubli-Dharwad</li>
-                  <li>KS Hospital, Koppal</li>
+              <div className="mb-4 p-4 rounded-lg shadow-md bg-white border-l-4 border-blue-500">
+                <h5 className="font-semibold text-blue-700 mb-2">🏥 Hospitals</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700">
+                  {hospitals
+                    .filter(h => h.city === user?.location)
+                    .map((h, idx) => (
+                      <li key={idx}>
+                        {h.name} – <strong>{h.city}</strong>
+                      </li>
+                    ))}
                 </ul>
               </div>
 
               {/* Doctors */}
-              <div className="p-5 rounded-lg shadow-md bg-white border-l-4 border-green-500 hover:shadow-lg transition">
-                <h4 className="font-semibold text-green-800 mb-3">👨‍⚕️ Oncologists & Specialists</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                  <li><strong>Dr. Sanjeev Kulgod</strong> – Surgical Oncologist (Hubli)</li>
-                  <li><strong>Dr. G. Mehar Kumar</strong> – Medical & Radiation Oncology</li>
-                  <li><strong>Dr. Vishwas Pai</strong> – Surgical Oncologist (Bagalkot)</li>
+              <div className="mb-4 p-4 rounded-lg shadow-md bg-white border-l-4 border-green-500">
+                <h5 className="font-semibold text-green-700 mb-2">👨‍⚕️ Doctors</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700">
+                  {doctors
+                    .filter(d => d.city === user?.location)
+                    .map((d, idx) => (
+                      <li key={idx}>
+                        {d.name} – <strong>{d.city}</strong>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+
+              {/* Diagnostics */}
+              <div className="p-4 rounded-lg shadow-md bg-white border-l-4 border-purple-500">
+                <h5 className="font-semibold text-purple-700 mb-2">🧪 Diagnostic Centres</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700">
+                  {diagnostics
+                    .filter(c => c.city === user?.location)
+                    .map((c, idx) => (
+                      <li key={idx}>
+                        {c.name} – <strong>{c.city}</strong>
+                      </li>
+                    ))}
                 </ul>
               </div>
             </div>
 
-            {/* Scan Centres */}
-            <div className="mt-8 p-5 rounded-lg shadow-md bg-white border-l-4 border-purple-500 hover:shadow-lg transition">
-              <h4 className="font-semibold text-purple-800 mb-3">🧪 Diagnostic & Scan Centres</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                <li>HCG NMR Diagnostic & Imaging Centre – Hubli</li>
-                <li>Medall Clumax Diagnostics – Belagavi & Hubli</li>
-                <li>Shree Diagnostic Centre – Kalaburagi</li>
-                <li>Dr. Lal PathLabs & Thyrocare Centres – Multiple locations</li>
-              </ul>
+            {/* Other Locations */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3">🌐 Other Locations</h4>
+
+              {/* Hospitals */}
+              <div className="mb-4 p-4 rounded-lg shadow-md bg-white border-l-4 border-blue-300">
+                <h5 className="font-semibold text-blue-700 mb-2">🏥 Hospitals</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700">
+                  {hospitals
+                    .filter(h => h.city !== user?.location)
+                    .map((h, idx) => (
+                      <li key={idx}>
+                        {h.name} – {h.city}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+
+              {/* Doctors */}
+              <div className="mb-4 p-4 rounded-lg shadow-md bg-white border-l-4 border-green-300">
+                <h5 className="font-semibold text-green-700 mb-2">👨‍⚕️ Doctors</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700">
+                  {doctors
+                    .filter(d => d.city !== user?.location)
+                    .map((d, idx) => (
+                      <li key={idx}>
+                        {d.name} – {d.city}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+
+              {/* Diagnostics */}
+              <div className="p-4 rounded-lg shadow-md bg-white border-l-4 border-purple-300">
+                <h5 className="font-semibold text-purple-700 mb-2">🧪 Diagnostic Centres</h5>
+                <ul className="list-disc list-inside text-sm text-gray-700">
+                  {diagnostics
+                    .filter(c => c.city !== user?.location)
+                    .map((c, idx) => (
+                      <li key={idx}>
+                        {c.name} – {c.city}
+                      </li>
+                    ))}
+                </ul>
+              </div>
             </div>
 
-            {/* Disclaimer */}
-            <div className="mt-8 p-5 rounded-lg bg-yellow-50 border border-yellow-300">
-              <h4 className="font-semibold text-yellow-900 mb-2">⚠️ Disclaimer</h4>
-              <p className="text-sm text-yellow-800 leading-relaxed">
-                This list is provided for informational purposes only and does not constitute a
-                professional medical referral. Please verify contact details and consult your
-                healthcare provider before visiting any facility.
-              </p>
-            </div>
           </CardContent>
         </Card>
 
 
-        {/* Next Steps */}
-        {/* <div className="grid md:grid-cols-2 gap-6">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle>Recommended Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {result.prediction === 'benign' ? (
-                <>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Continue Regular Screening</p>
-                      <p className="text-sm text-gray-600">Maintain your regular mammography schedule</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Monitor for Changes</p>
-                      <p className="text-sm text-gray-600">Report any new symptoms to your doctor</p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-start space-x-3">
-                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Immediate Medical Consultation</p>
-                      <p className="text-sm text-gray-600">Schedule appointment with oncologist</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Additional Testing</p>
-                      <p className="text-sm text-gray-600">May require biopsy for confirmation</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
 
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle>Analysis Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Analysis Type:</span>
-                <Badge variant="secondary">{result.type === 'tabular' ? 'Data Analysis' : 'Image Analysis'}</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Model Used:</span>
-                <span className="font-medium">{result.type === 'tabular' ? 'Random Forest' : 'CNN ResNet-50'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Processing Time:</span>
-                <span className="font-medium">2.3 seconds</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Result ID:</span>
-                <span className="font-mono text-sm">{result.id.substring(0, 12)}...</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div> */}
+        {/* Next Steps */}
+
         <div className="grid md:grid-cols-2 gap-6">
           {/* Recommended Actions */}
           <Card className={`border-0 shadow-xl rounded-lg transition hover:shadow-2xl ${result.prediction === 'benign' ? 'bg-gradient-to-r from-green-50 to-green-100' : 'bg-gradient-to-r from-red-50 to-red-100'
@@ -671,29 +726,54 @@ export default function ResultsPage() {
           </Card>
 
           {/* Analysis Details */}
+
           <Card className="border-0 shadow-xl rounded-lg transition hover:shadow-2xl bg-gradient-to-r from-blue-50 to-indigo-100">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-lg p-4 text-white">
               <CardTitle>📊 Analysis Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-6">
+
+              {/* Analysis Type */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 font-medium">Analysis Type:</span>
                 <Badge variant="secondary">{result.type === 'tabular' ? 'Data Analysis' : 'Image Analysis'}</Badge>
               </div>
+
+              {/* Model Used */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 font-medium">Model Used:</span>
                 <span className="font-semibold">{result.type === 'tabular' ? 'Random Forest' : 'CNN ResNet-50'}</span>
               </div>
+
+              {/* Processing Time */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 font-medium">Processing Time:</span>
-                <span className="font-semibold">2.3 seconds</span>
+                <span className="font-semibold">{result.processingTime || '2.3 seconds'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-medium">Result ID:</span>
-                <span className="font-mono text-sm text-gray-800">{result.id.substring(0, 12)}...</span>
-              </div>
+
+
+
+              {/* Predicted Outcome */}
+              {result.prediction && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700 font-medium">Predicted Outcome:</span>
+                  <span className="font-semibold text-green-700">{result.prediction}</span>
+                </div>
+              )}
+
+              {/* Confidence / Accuracy */}
+              {result.confidence && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700 font-medium">Confidence:</span>
+                  <span className="font-semibold">{(result.confidence).toFixed(2)}%</span>
+                </div>
+              )}
+
+
+
             </CardContent>
           </Card>
+
         </div>
 
 
