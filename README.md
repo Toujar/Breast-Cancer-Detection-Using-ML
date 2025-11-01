@@ -62,8 +62,8 @@ Breast-Cancer-Detection/
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/your-username/Breast-Cancer-Detection.git
-cd Breast-Cancer-Detection
+git clone https://github.com/Toujar/Breast-Cancer-Detection-Using-ML.git
+cd Breast-Cancer-Detection-Using-ML
 ````
 
 ---
@@ -114,7 +114,7 @@ cd Breast-Cancer-Detection
 
 ### 3. Frontend (Next.js)
 
-1. Go back to root:
+1. Go back to root :
 
    ```bash
    cd ..
