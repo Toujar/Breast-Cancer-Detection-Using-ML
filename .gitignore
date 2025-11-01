@@ -70,8 +70,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -114,3 +112,8 @@ mi-backend/dataset/*
 !mi-backend/model/*.onnx
 !mi-backend/model/*.joblib
 !mi-backend/model/README.md
+
+
+# Allow lib folder
+!lib/
+!lib/**
