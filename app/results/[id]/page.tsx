@@ -125,6 +125,8 @@ export default function ResultsPage() {
     }));
   }, [user]);
 
+  console.log('User location:', user?.location);
+
 
   // console.log(sortedHospitals, sortedDoctors, sortedDiagnostics);
   useEffect(() => {
