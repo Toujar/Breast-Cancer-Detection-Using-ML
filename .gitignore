@@ -45,7 +45,7 @@ coverage/
 .env.* 
 !.env.example
 
-# Lockfiles (optional, keep one)
+# Lockfiles (optional)
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
@@ -101,10 +101,16 @@ instance/
 *.sqlite3
 
 # --- Project-specific ---
-# Datasets
+
+# Datasets (ignore raw data, keep README)
 mi-backend/dataset/*
 !mi-backend/dataset/README.md
 
-# Trained models
-mi-backend/model/*
+# ✅ Trained models (keep models for Git LFS)
+!mi-backend/model/
+!mi-backend/model/*.pkl
+!mi-backend/model/*.h5
+!mi-backend/model/*.pt
+!mi-backend/model/*.onnx
+!mi-backend/model/*.joblib
 !mi-backend/model/README.md

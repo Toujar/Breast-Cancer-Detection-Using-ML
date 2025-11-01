@@ -274,25 +274,25 @@ export default function ResultsPage() {
 
   const COLORS = ['#3B82F6', '#E5E7EB'];
 
-  const [gradcam, setGradcam] = useState<string | null>(null);
-  const [loadingGradcam, setLoadingGradcam] = useState(false);
+  // const [gradcam, setGradcam] = useState<string | null>(null);
+  // const [loadingGradcam, setLoadingGradcam] = useState(false);
 
-  useEffect(() => {
-    if (result?.type === "image") fetchGradCAM();
-  }, [result]);
+  // useEffect(() => {
+  //   if (result?.type === "image") fetchGradCAM();
+  // }, [result]);
 
-  const fetchGradCAM = async () => {
-    try {
-      setLoadingGradcam(true);
-      const res = await fetch(`/api/results/${predictionId}/gradcam`);
-      const data = await res.json();
-      if (data.success) setGradcam(data.gradcam);
-    } catch (err) {
-      console.error("Grad-CAM fetch error", err);
-    } finally {
-      setLoadingGradcam(false);
-    }
-  };
+  // const fetchGradCAM = async () => {
+  //   try {
+  //     setLoadingGradcam(true);
+  //     const res = await fetch(`/api/results/${predictionId}/gradcam`);
+  //     const data = await res.json();
+  //     if (data.success) setGradcam(data.gradcam);
+  //   } catch (err) {
+  //     console.error("Grad-CAM fetch error", err);
+  //   } finally {
+  //     setLoadingGradcam(false);
+  //   }
+  // };
 
 
   return (
@@ -413,7 +413,7 @@ export default function ResultsPage() {
         </Card>
 
         {/* Grad-CAM heatmap for image-based predictions */}
-        {result.type === 'image' && (
+        {/* {result.type === 'image' && (
           <Card className="border-0 shadow-xl rounded-lg hover:shadow-2xl transition mt-8">
             <CardHeader className="bg-gradient-to-r from-orange-600 to-pink-600 text-white p-4 rounded-t-lg">
               <CardTitle className="flex items-center space-x-2">
@@ -441,7 +441,7 @@ export default function ResultsPage() {
               )}
             </CardContent>
           </Card>
-        )}
+        )} */}
 
         {/* Analysis Details */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
