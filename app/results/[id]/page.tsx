@@ -21,7 +21,23 @@ import {
   Clock,
   Loader2,
   Hospital,
-  Building
+  Building,
+  Stethoscope,
+  HeartPulse,
+  Smile,
+  Bell,
+  Pill,
+  CalendarCheck,
+  CupSoda,
+  Book,
+  AlertCircle,
+  Soup,
+  Music,
+  Leaf,
+  Droplets,
+  Apple,
+  Banana,
+  Sun
 } from 'lucide-react';
 // import { useAuth } from '@/lib/auth-context';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -680,13 +696,26 @@ export default function ResultsPage() {
 
         {/* Next Steps */}
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 ">
+
           {/* Recommended Actions */}
-          <Card className={`border-0 shadow-xl rounded-lg transition hover:shadow-2xl ${result.prediction === 'benign' ? 'bg-gradient-to-r from-green-50 to-green-100' : 'bg-gradient-to-r from-red-50 to-red-100'
-            }`}>
-            <CardHeader className="bg-gradient-to-r rounded-t-lg p-4 flex items-center justify-between
-      ${result.prediction === 'benign' ? 'from-green-600 to-green-700 text-white' : 'from-red-600 to-red-700 text-white'}">
-              <CardTitle>{result.prediction === 'benign' ? '✅ Recommended Actions' : '⚠️ Recommended Actions'}</CardTitle>
+          <Card
+            className={`border-0 shadow-xl rounded-lg transition hover:shadow-2xl ${result.prediction === 'benign'
+              ? 'bg-gradient-to-r from-green-50 to-green-100'
+              : 'bg-gradient-to-r from-red-50 to-red-100'
+              }`}
+          >
+            <CardHeader
+              className={`bg-gradient-to-r rounded-t-lg p-4 flex items-center justify-between ${result.prediction === 'benign'
+                ? 'from-green-600 to-green-700 text-white'
+                : 'from-red-600 to-red-700 text-white'
+                }`}
+            >
+              <CardTitle>
+                {result.prediction === 'benign'
+                  ? '✅ Recommended Actions'
+                  : '⚠️ Recommended Actions'}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-6">
               {result.prediction === 'benign' ? (
@@ -695,14 +724,21 @@ export default function ResultsPage() {
                     <CheckCircle className="h-6 w-6 text-green-600 mt-1" />
                     <div>
                       <p className="font-semibold text-green-800">Continue Regular Screening</p>
-                      <p className="text-sm text-gray-700">Maintain your regular mammography schedule</p>
+                      <p className="text-sm text-gray-700">Maintain your mammography schedule every 12–24 months.</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
                     <CheckCircle className="h-6 w-6 text-green-600 mt-1" />
                     <div>
-                      <p className="font-semibold text-green-800">Monitor for Changes</p>
-                      <p className="text-sm text-gray-700">Report any new symptoms to your doctor</p>
+                      <p className="font-semibold text-green-800">Healthy Lifestyle</p>
+                      <p className="text-sm text-gray-700">Stay active, eat fiber-rich foods, and maintain a healthy BMI.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <CheckCircle className="h-6 w-6 text-green-600 mt-1" />
+                    <div>
+                      <p className="font-semibold text-green-800">Avoid Smoking & Excess Alcohol</p>
+                      <p className="text-sm text-gray-700">These are known risk factors for breast-related complications.</p>
                     </div>
                   </div>
                 </>
@@ -712,14 +748,23 @@ export default function ResultsPage() {
                     <AlertTriangle className="h-6 w-6 text-red-600 mt-1" />
                     <div>
                       <p className="font-semibold text-red-800">Immediate Medical Consultation</p>
-                      <p className="text-sm text-gray-700">Schedule appointment with oncologist</p>
+                      <p className="text-sm text-gray-700">Consult an oncologist or specialist for a detailed evaluation.</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
                     <AlertTriangle className="h-6 w-6 text-red-600 mt-1" />
                     <div>
-                      <p className="font-semibold text-red-800">Additional Testing</p>
-                      <p className="text-sm text-gray-700">May require biopsy for confirmation</p>
+                      <p className="font-semibold text-red-800">Further Diagnostic Tests</p>
+                      <p className="text-sm text-gray-700">Biopsy or MRI may be required for confirmation and staging.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <AlertTriangle className="h-6 w-6 text-red-600 mt-1" />
+                    <div>
+                      <p className="font-semibold text-red-800">Emotional & Support Guidance</p>
+                      <p className="text-sm text-gray-700">
+                        Seek counseling and support groups — emotional well-being plays a key role in recovery.
+                      </p>
                     </div>
                   </div>
                 </>
@@ -728,55 +773,355 @@ export default function ResultsPage() {
           </Card>
 
           {/* Analysis Details */}
-
           <Card className="border-0 shadow-xl rounded-lg transition hover:shadow-2xl bg-gradient-to-r from-blue-50 to-indigo-100">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-lg p-4 text-white">
               <CardTitle>📊 Analysis Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-6">
-
-              {/* Analysis Type */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 font-medium">Analysis Type:</span>
-                <Badge variant="secondary">{result.type === 'tabular' ? 'Data Analysis' : 'Image Analysis'}</Badge>
+                <Badge variant="secondary">
+                  {result.type === 'tabular' ? 'Data Analysis' : 'Image Analysis'}
+                </Badge>
               </div>
 
-              {/* Model Used */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 font-medium">Model Used:</span>
-                <span className="font-semibold">{result.type === 'tabular' ? 'Random Forest' : 'CNN ResNet-50'}</span>
+                <span className="font-semibold">
+                  {result.type === 'tabular' ? 'Random Forest' : 'CNN ResNet-50'}
+                </span>
               </div>
 
-              {/* Processing Time */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-700 font-medium">Processing Time:</span>
                 <span className="font-semibold">{result.processingTime || '2.3 seconds'}</span>
               </div>
 
-
-
-              {/* Predicted Outcome */}
               {result.prediction && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700 font-medium">Predicted Outcome:</span>
-                  <span className="font-semibold text-green-700">{result.prediction}</span>
+                  <span
+                    className={`font-semibold ${result.prediction === 'benign' ? 'text-green-700' : 'text-red-700'
+                      }`}
+                  >
+                    {result.prediction}
+                  </span>
                 </div>
               )}
 
-              {/* Confidence / Accuracy */}
               {result.confidence && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700 font-medium">Confidence:</span>
                   <span className="font-semibold">{(result.confidence).toFixed(2)}%</span>
                 </div>
               )}
-
-
-
             </CardContent>
           </Card>
 
+
         </div>
+
+
+       <div className="flex flex-col space-y-6 mt-10">
+
+  {/* 🌿 Personalized Lifestyle Recommendations */}
+  <Card className="border-0 shadow-xl rounded-lg transition hover:shadow-2xl bg-gradient-to-r from-yellow-50 to-amber-100">
+    <CardHeader className="bg-gradient-to-r from-yellow-500 to-amber-600 rounded-t-lg p-4 text-white">
+      <CardTitle>🌿 Personalized Lifestyle Recommendations</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-5 p-6">
+      {result.prediction === 'benign' ? (
+        <>
+          <div className="flex items-start space-x-4">
+            <Heart className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-800">Balanced Diet</p>
+              <p className="text-sm text-gray-700">
+                Include antioxidants, whole grains, lean proteins, and fresh fruits. Avoid processed sugars and trans fats.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Heart className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-800">Physical Activity</p>
+              <p className="text-sm text-gray-700">
+                Engage in at least 30 minutes of moderate exercise, 5 days a week. Include light stretching or yoga to enhance flexibility.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Heart className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-800">Regular Sleep</p>
+              <p className="text-sm text-gray-700">
+                Maintain 7–8 hours of quality sleep to support cell recovery. Try to sleep before 11 PM for better hormonal balance.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Sun className="h-6 w-6 text-amber-700 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-800">Sunlight & Vitamin D</p>
+              <p className="text-sm text-gray-700">
+                Get 15–20 minutes of morning sunlight daily to boost Vitamin D and strengthen your immune system.
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-start space-x-4">
+            <Stethoscope className="h-6 w-6 text-amber-700 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-900">Specialist Supervision</p>
+              <p className="text-sm text-gray-700">Follow your treatment plan and ask for a nutritionist referral.</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <HeartPulse className="h-6 w-6 text-amber-700 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-900">Gentle Exercise</p>
+              <p className="text-sm text-gray-700">
+                Light yoga, breathing, and short walks improve immunity and mood. Avoid strenuous activity unless cleared by your doctor.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Smile className="h-6 w-6 text-amber-700 mt-1" />
+            <div>
+              <p className="font-semibold text-amber-900">Mental Wellness</p>
+              <p className="text-sm text-gray-700">
+                Practice mindfulness, stay socially connected, and keep a positive outlook. Consider joining wellness workshops.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* 🩺 Reminders & Follow-Up */}
+  <Card className="border-0 shadow-xl rounded-lg bg-gradient-to-r from-rose-50 to-pink-100 transition hover:shadow-2xl">
+    <CardHeader className="bg-gradient-to-r from-rose-500 to-pink-600 rounded-t-lg p-4 text-white">
+      <CardTitle>🩺 Reminders & Follow-Up</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-5 p-6">
+      {result.prediction === 'benign' ? (
+        <>
+          <div className="flex items-start space-x-4">
+            <Clock className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-pink-800">Monthly Self-Examination</p>
+              <p className="text-sm text-gray-700">
+                Perform breast self-exam once every month, ideally 7 days after your period. Use a reminder app for consistency.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Bell className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-pink-800">Annual Mammogram Reminder</p>
+              <p className="text-sm text-gray-700">
+                Set a yearly reminder for mammography screening. Early detection is the best protection.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <CalendarCheck className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-pink-800">Doctor Checkup Log</p>
+              <p className="text-sm text-gray-700">
+                Maintain a digital log of your health checkups and updates to track trends over time.
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-start space-x-4">
+            <Pill className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-pink-800">Medication Schedule</p>
+              <p className="text-sm text-gray-700">
+                Set daily medicine reminders using your health app or smartwatch. Never skip prescribed doses.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <CalendarCheck className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-pink-800">Regular Oncologist Visits</p>
+              <p className="text-sm text-gray-700">
+                Maintain follow-ups as advised, typically every 3–6 months. Keep notes from each consultation.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <AlertCircle className="h-6 w-6 text-pink-600 mt-1" />
+            <div>
+              <p className="font-semibold text-pink-800">Symptom Tracker</p>
+              <p className="text-sm text-gray-700">
+                Record new or unusual symptoms immediately in your health journal or app.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* 🍎 Nutrition & Wellness Tips */}
+  <Card className="border-0 shadow-xl rounded-lg bg-gradient-to-r from-lime-50 to-emerald-100 transition hover:shadow-2xl">
+    <CardHeader className="bg-gradient-to-r from-lime-500 to-emerald-600 rounded-t-lg p-4 text-white">
+      <CardTitle>🍎 Nutrition & Wellness Tips</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-5 p-6">
+      {result.prediction === 'benign' ? (
+        <>
+          <div className="flex items-start space-x-4">
+            <Leaf className="h-6 w-6 text-emerald-600 mt-1" />
+            <div>
+              <p className="font-semibold text-emerald-900">Plant-Based Diet</p>
+              <p className="text-sm text-gray-700">
+                Eat more fruits, vegetables, legumes, and whole grains. Limit red meat and dairy fats.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Droplets className="h-6 w-6 text-emerald-600 mt-1" />
+            <div>
+              <p className="font-semibold text-emerald-900">Stay Hydrated</p>
+              <p className="text-sm text-gray-700">
+                Drink at least 2–3 liters of water daily to support metabolism and detoxification.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <CupSoda className="h-6 w-6 text-emerald-600 mt-1" />
+            <div>
+              <p className="font-semibold text-emerald-900">Limit Caffeine & Alcohol</p>
+              <p className="text-sm text-gray-700">
+                Excessive caffeine and alcohol can increase inflammation; enjoy herbal tea instead.
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-start space-x-4">
+            <Apple className="h-6 w-6 text-emerald-600 mt-1" />
+            <div>
+              <p className="font-semibold text-emerald-900">Cancer-Fighting Foods</p>
+              <p className="text-sm text-gray-700">
+                Include turmeric, broccoli, berries, and omega-3-rich foods for anti-inflammatory benefits.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Banana className="h-6 w-6 text-emerald-600 mt-1" />
+            <div>
+              <p className="font-semibold text-emerald-900">Small Frequent Meals</p>
+              <p className="text-sm text-gray-700">
+                Helps maintain energy and reduce nausea during treatment.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Soup className="h-6 w-6 text-emerald-600 mt-1" />
+            <div>
+              <p className="font-semibold text-emerald-900">Immune Boost</p>
+              <p className="text-sm text-gray-700">
+                Try warm soups and green smoothies with ginger and garlic to strengthen recovery.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* 🧘‍♀️ Mental & Emotional Well-Being */}
+  <Card className="border-0 shadow-xl rounded-lg bg-gradient-to-r from-purple-50 to-indigo-100 transition hover:shadow-2xl">
+    <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-700 rounded-t-lg p-4 text-white">
+      <CardTitle>🧘‍♀️ Mental & Emotional Well-Being</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-5 p-6">
+      {result.prediction === 'benign' ? (
+        <>
+          <div className="flex items-start space-x-4">
+            <Smile className="h-6 w-6 text-indigo-700 mt-1" />
+            <div>
+              <p className="font-semibold text-indigo-900">Stay Positive</p>
+              <p className="text-sm text-gray-700">Practice gratitude journaling and mindfulness for stress relief.</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Book className="h-6 w-6 text-indigo-700 mt-1" />
+            <div>
+              <p className="font-semibold text-indigo-900">Self-Reflection</p>
+              <p className="text-sm text-gray-700">Spend time on hobbies or reading uplifting material daily.</p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-start space-x-4">
+            <HeartPulse className="h-6 w-6 text-indigo-700 mt-1" />
+            <div>
+              <p className="font-semibold text-indigo-900">Therapeutic Support</p>
+              <p className="text-sm text-gray-700">
+                Consider speaking with a counselor or joining a cancer support group.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Sun className="h-6 w-6 text-indigo-700 mt-1" />
+            <div>
+              <p className="font-semibold text-indigo-900">Daily Relaxation</p>
+              <p className="text-sm text-gray-700">
+                Try yoga, deep breathing, or meditation to reduce anxiety.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-4">
+            <Music className="h-6 w-6 text-indigo-700 mt-1" />
+            <div>
+              <p className="font-semibold text-indigo-900">Music Therapy</p>
+              <p className="text-sm text-gray-700">Listening to calm music reduces stress hormones and promotes healing.</p>
+            </div>
+          </div>
+        </>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* 📅 Personalized Summary */}
+  <Card className="border-0 shadow-xl rounded-lg bg-gradient-to-r from-cyan-50 to-sky-100 transition hover:shadow-2xl">
+    <CardHeader className="bg-gradient-to-r from-cyan-600 to-sky-700 rounded-t-lg p-4 text-white">
+      <CardTitle>📅 Personalized Summary</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4 p-6">
+      <p className="text-gray-800 text-sm">
+        Based on your analysis, we’ve prepared a personalized summary of your next steps:
+      </p>
+      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+        <li>Next screening date: <strong>12 months from now</strong></li>
+        <li>Recommended activity: <strong>Light exercise daily</strong></li>
+        <li>Nutrition focus: <strong>High-fiber, low-fat meals</strong></li>
+        <li>Mental check-in: <strong>Weekly self-reflection or therapy</strong></li>
+        <li>Current confidence level: <strong>{(result.confidence || 98).toFixed(1)}%</strong></li>
+      </ul>
+      <p className="text-gray-700 text-sm mt-2 italic">
+        AI Tip: {result.prediction === 'benign'
+          ? 'Keep tracking your health metrics regularly and continue your balanced lifestyle.'
+          : 'Stay consistent with your care plan, and remember — progress is healing, not perfection.'}
+      </p>
+    </CardContent>
+  </Card>
+
+</div>
+
 
 
         {/* Action Buttons */}
