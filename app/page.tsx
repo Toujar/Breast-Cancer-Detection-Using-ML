@@ -204,52 +204,7 @@ export default function Home() {
 
 
 
-      {/* Stats Section */}
-      {/* Stats Section */}
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-b from-purple-50 via-pink-50 to-yellow-50 relative overflow-hidden">
-        {/* Abstract color shapes */}
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-tr from-pink-300 via-purple-300 to-indigo-400 rounded-full opacity-20 animate-pulse-slow blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-gradient-to-br from-yellow-300 via-orange-300 to-red-400 rounded-full opacity-20 animate-pulse-slow blur-3xl"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-
-            {/* Total Predictions */}
-            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
-              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 animate-gradient-x">
-                {stats.totalPredictions.toLocaleString()}+
-              </div>
-              <div className="text-gray-700 font-medium">Predictions Made</div>
-            </div>
-
-            {/* Model Accuracy */}
-            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
-              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-teal-400 to-blue-500 animate-gradient-x">
-                {stats.accuracy}%
-              </div>
-              <div className="text-gray-700 font-medium">Model Accuracy</div>
-            </div>
-
-            {/* Healthcare Providers */}
-            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
-              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-red-500 animate-gradient-x">
-                {stats.usersServed}+
-              </div>
-              <div className="text-gray-700 font-medium">Healthcare Providers</div>
-            </div>
-
-            {/* Active Models */}
-            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
-              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 animate-gradient-x">
-                {stats.modelsActive}
-              </div>
-              <div className="text-gray-700 font-medium">Active Models</div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      
 
 
 
@@ -394,6 +349,54 @@ export default function Home() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* Stats Section */}
+      {/* Stats Section */}
+      {/* Stats Section */}
+      <section className="py-20 bg-gradient-to-b from-purple-50 via-pink-50 to-yellow-50 relative overflow-hidden">
+        {/* Abstract color shapes */}
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-tr from-pink-300 via-purple-300 to-indigo-400 rounded-full opacity-20 animate-pulse-slow blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-gradient-to-br from-yellow-300 via-orange-300 to-red-400 rounded-full opacity-20 animate-pulse-slow blur-3xl"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+
+            {/* Total Predictions */}
+            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
+              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 animate-gradient-x">
+                {stats.totalPredictions.toLocaleString()}+
+              </div>
+              <div className="text-gray-700 font-medium">Predictions Made</div>
+            </div>
+
+            {/* Model Accuracy */}
+            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
+              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-teal-400 to-blue-500 animate-gradient-x">
+                {stats.accuracy}%
+              </div>
+              <div className="text-gray-700 font-medium">Model Accuracy</div>
+            </div>
+
+            {/* Healthcare Providers */}
+            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
+              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-red-500 animate-gradient-x">
+                {stats.usersServed}+
+              </div>
+              <div className="text-gray-700 font-medium">Healthcare Providers</div>
+            </div>
+
+            {/* Active Models */}
+            <div className="text-center relative group p-6 rounded-xl bg-white/30 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all">
+              <div className="text-3xl md:text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 animate-gradient-x">
+                {stats.modelsActive}
+              </div>
+              <div className="text-gray-700 font-medium">Active Models</div>
+            </div>
+
           </div>
         </div>
       </section>
