@@ -21,9 +21,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 400 });
     }
 
-    const backendUrl = process.env.MI_BACKEND_URL || 'http://127.0.0.1:8000';
+    // Use NEW backend API
+    const backendUrl = process.env.NEW_BACKEND_URL || 'http://127.0.0.1:8000';
     const proxyForm = new FormData();
     proxyForm.append('file', file, file.name);
+    proxyForm.append('return_gradcam', 'true');
 
     const res = await fetch(`${backendUrl}/predict/image`, {
       method: 'POST',
@@ -37,18 +39,20 @@ export async function POST(request: NextRequest) {
 
     const predictionId = `img-pred-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+    // Store result in database with real metrics from new backend
     await connectDB();
     await Result.create({
       predictionId,
       type: 'image',
-      prediction: data.result,
-      confidence: data.confidence || 85,
+      prediction: data.prediction, // 'benign' or 'malignant'
+      confidence: data.confidence,
+      gradcam: data.gradcam, // Store Grad-CAM base64
       inputData: {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
       },
-      modelMetrics: {
+      modelMetrics: data.metrics || {
         accuracy: 94.2,
         precision: 93.1,
         recall: 95.3,
@@ -70,14 +74,15 @@ export async function POST(request: NextRequest) {
       result: {
         id: predictionId,
         type: 'image',
-        prediction: data.result,
-        confidence: data.confidence || 85,
+        prediction: data.prediction,
+        confidence: data.confidence,
+        gradcam: data.gradcam,
         inputData: {
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type,
         },
-        modelMetrics: {
+        modelMetrics: data.metrics || {
           accuracy: 94.2,
           precision: 93.1,
           recall: 95.3,

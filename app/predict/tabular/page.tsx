@@ -241,6 +241,10 @@ export default function TabularPredictionPage() {
                     <p className="text-sm font-medium text-blue-900">AI Model Active</p>
                     <p className="text-xs text-blue-700">Random Forest Classifier</p>
                   </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Architecture:</span>
+                      <span className="font-medium">XGBoost</span>
+                    </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Model Version:</span>

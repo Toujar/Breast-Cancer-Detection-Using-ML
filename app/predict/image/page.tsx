@@ -310,7 +310,7 @@ export default function ImagePredictionPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Architecture:</span>
-                      <span className="font-medium">ResNet-50</span>
+                      <span className="font-medium">DenseNet-121</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Input Size:</span>

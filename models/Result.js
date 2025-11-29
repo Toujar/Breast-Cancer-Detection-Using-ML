@@ -10,7 +10,7 @@ const ResultSchema = new mongoose.Schema(
       username: { type: String },
       role: { type: String },
     },
-    type: { type: String, enum: ["tabular", "image"], required: true },
+    type: { type: String, enum: ["tabular", "image", "multimodal"], required: true },
     prediction: { type: String, enum: ["benign", "malignant"], required: true },
     confidence: { type: Number, required: true },
     inputData: { type: mongoose.Schema.Types.Mixed },
@@ -19,7 +19,13 @@ const ResultSchema = new mongoose.Schema(
       precision: { type: Number },
       recall: { type: Number },
       f1Score: { type: Number },
+      version: { type: String },
+      algorithm: { type: String },
     },
+    // Grad-CAM visualization for image predictions (base64 encoded)
+    gradcam: { type: String },
+    // SHAP visualization for tabular predictions (base64 encoded)
+    shap: { type: String },
     timestamp: { type: Date, default: Date.now, index: true },
   },
   { timestamps: true }

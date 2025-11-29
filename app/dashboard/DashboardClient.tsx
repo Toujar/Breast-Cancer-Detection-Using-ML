@@ -31,6 +31,13 @@ interface DashboardStats {
   lastActive: string;
 }
 
+interface ModelMetrics {
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+}
+
 interface RecentPrediction {
   id: string;
   type: 'tabular' | 'image';
@@ -48,6 +55,12 @@ export default function DashboardClient() {
     recentPredictions: 0,
     accuracy: 97.8,
     lastActive: 'Today'
+  });
+  const [modelMetrics, setModelMetrics] = useState<ModelMetrics>({
+    accuracy: 97.8,
+    precision: 96.4,
+    recall: 98.1,
+    f1Score: 97.2
   });
   const [recentPredictions, setRecentPredictions] = useState<RecentPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,20 +84,23 @@ export default function DashboardClient() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsResponse, predictionsResponse] = await Promise.all([
+      const [statsResponse, predictionsResponse, metricsResponse] = await Promise.all([
         fetch('/api/dashboard/stats'),
-        fetch('/api/predictions/recent')
+        fetch('/api/predictions/recent'),
+        fetch('/api/dashboard/metrics')
       ]);
 
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData);
-        
-      // console.log('Stats after fetch:', statsData);
       }
       if (predictionsResponse.ok) {
         const predictionsData = await predictionsResponse.json();
         setRecentPredictions(predictionsData);
+      }
+      if (metricsResponse.ok) {
+        const metricsData = await metricsResponse.json();
+        setModelMetrics(metricsData);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -119,17 +135,17 @@ export default function DashboardClient() {
   // }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation - iCloud Style */}
+      <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
                 <Heart className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">AI Cancer Detection</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Cancer Detection</h1>
                 <p className="text-xs text-gray-500">Medical Dashboard</p>
               </div>
             </Link>
@@ -137,13 +153,13 @@ export default function DashboardClient() {
               <div className="text-right">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium text-gray-900">{user?.username ?? 'User'}</span>
-                  <Badge variant={user?.role === 'admin' ? 'default' : 'secondary'}>
-                    {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
+                  <Badge className={user?.role === 'admin' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}>
+                    {user?.role === 'admin' ? 'Admin' : 'User'}
                   </Badge>
                 </div>
                 <span className="text-xs text-gray-500">{user?.email ?? 'user@example.com'}</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
@@ -153,63 +169,62 @@ export default function DashboardClient() {
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        {/* Header - iCloud Style */}
+        <div className="mb-10">
+          <h1 className="text-4xl font-semibold text-gray-900 mb-2 tracking-tight">
             Welcome back, {user?.username ?? 'User'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-lg font-light">
             Monitor your AI-assisted breast cancer detection activities and insights.
           </p>
         </div>
 
-        {/* Quick Stats */}
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100">
+        {/* Quick Stats - iCloud Style */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600">Total Predictions</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalPredictions}</p>
+                <p className="text-sm text-gray-600 font-light mb-1">Total Predictions</p>
+                <p className="text-3xl font-semibold text-gray-900">{stats.totalPredictions}</p>
               </div>
-              <div className="w-14 h-14 bg-blue-200 rounded-lg flex items-center justify-center shadow-md">
-                <Brain className="h-7 w-7 text-blue-700" />
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Brain className="h-6 w-6 text-blue-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-green-50 to-green-100">
+          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600">This Week</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.recentPredictions}</p>
+                <p className="text-sm text-gray-600 font-light mb-1">This Week</p>
+                <p className="text-3xl font-semibold text-gray-900">{stats.recentPredictions}</p>
               </div>
-              <div className="w-14 h-14 bg-green-200 rounded-lg flex items-center justify-center shadow-md">
-                <TrendingUp className="h-7 w-7 text-green-700" />
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100">
+          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600">Model Accuracy</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.accuracy}%</p>
+                <p className="text-sm text-gray-600 font-light mb-1">Model Accuracy</p>
+                <p className="text-3xl font-semibold text-gray-900">{stats.accuracy}%</p>
               </div>
-              <div className="w-14 h-14 bg-purple-200 rounded-lg flex items-center justify-center shadow-md">
-                <BarChart3 className="h-7 w-7 text-purple-700" />
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-purple-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100">
+          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600">Last Active</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.lastActive}</p>
+                <p className="text-sm text-gray-600 font-light mb-1">Last Active</p>
+                <p className="text-3xl font-semibold text-gray-900">{stats.lastActive}</p>
               </div>
-              <div className="w-14 h-14 bg-orange-200 rounded-lg flex items-center justify-center shadow-md">
-                <Clock className="h-7 w-7 text-orange-700" />
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                <Clock className="h-6 w-6 text-orange-500" />
               </div>
             </CardContent>
           </Card>
@@ -351,10 +366,10 @@ export default function DashboardClient() {
               </CardHeader>
               <CardContent className="space-y-5">
                 {[
-                  { label: 'Accuracy', value: 97.8, gradient: 'from-blue-400 to-blue-600' },
-                  { label: 'Precision', value: 96.4, gradient: 'from-purple-400 to-purple-600' },
-                  { label: 'Recall', value: 98.1, gradient: 'from-teal-400 to-teal-600' },
-                  { label: 'F1-Score', value: 97.2, gradient: 'from-pink-400 to-pink-600' },
+                  { label: 'Accuracy', value: modelMetrics.accuracy, gradient: 'from-blue-400 to-blue-600' },
+                  { label: 'Precision', value: modelMetrics.precision, gradient: 'from-purple-400 to-purple-600' },
+                  { label: 'Recall', value: modelMetrics.recall, gradient: 'from-teal-400 to-teal-600' },
+                  { label: 'F1-Score', value: modelMetrics.f1Score, gradient: 'from-pink-400 to-pink-600' },
                 ].map((metric) => (
                   <div key={metric.label} className="space-y-1">
                     <div className="flex justify-between text-sm font-medium text-gray-700">

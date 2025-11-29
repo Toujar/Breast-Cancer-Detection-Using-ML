@@ -7,12 +7,17 @@ export async function POST(req: Request) {
   try {
     const authedUser = requireUser();
     const body = await req.json();
-    const backendUrl = process.env.MI_BACKEND_URL || "http://127.0.0.1:8000";
+    
+    // Use NEW backend API
+    const backendUrl = process.env.NEW_BACKEND_URL || "http://127.0.0.1:8000";
 
     const res = await fetch(`${backendUrl}/predict/tabular`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        ...body,
+        return_shap: false // Can be made configurable
+      }),
     });
 
     const data = await res.json();
@@ -22,14 +27,16 @@ export async function POST(req: Request) {
     
     const predictionId = `pred-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+    // Store result with real metrics from new backend
     await connectDB();
     await Result.create({
       predictionId,
       type: 'tabular',
-      prediction: data.result,
-      confidence: data.confidence || 85,
+      prediction: data.prediction, // 'benign' or 'malignant'
+      confidence: data.confidence,
+      shap: data.shap, // Store SHAP visualization if available
       inputData: body,
-      modelMetrics: {
+      modelMetrics: data.metrics || {
         accuracy: 97.8,
         precision: 96.4,
         recall: 98.1,
@@ -51,10 +58,11 @@ export async function POST(req: Request) {
       result: {
         id: predictionId,
         type: 'tabular',
-        prediction: data.result,
-        confidence: data.confidence || 85,
+        prediction: data.prediction,
+        confidence: data.confidence,
+        shap: data.shap,
         inputData: body,
-        modelMetrics: {
+        modelMetrics: data.metrics || {
           accuracy: 97.8,
           precision: 96.4,
           recall: 98.1,

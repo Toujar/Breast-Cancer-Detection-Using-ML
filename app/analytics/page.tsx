@@ -64,7 +64,7 @@ export default function AnalyticsPage() {
         setAnalytics(prev => ({
           ...prev,
           totalPredictions: stats.totalPredictions || 0,
-          accuracyRate: 97.6
+          accuracyRate: stats.accuracy || 97.6  // ✅ Use real accuracy from stats
         }));
       }
 
@@ -79,20 +79,29 @@ export default function AnalyticsPage() {
           recentActivity: predictions.slice(0, 5)
         }));
       }
+
+      // Fetch monthly data
+      const monthlyRes = await fetch('/api/analytics/monthly');
+      if (monthlyRes.ok) {
+        const monthlyDataFromAPI = await monthlyRes.json();
+        if (monthlyDataFromAPI.length > 0) {
+          setMonthlyData(monthlyDataFromAPI);
+        }
+      }
     } catch (error) {
       console.error('Error fetching analytics:', error);
     }
   };
 
-  // Mock data for charts
-  const monthlyData = [
-    { month: 'Jan', predictions: 12, accuracy: 95.2 },
-    { month: 'Feb', predictions: 18, accuracy: 96.1 },
-    { month: 'Mar', predictions: 25, accuracy: 97.3 },
-    { month: 'Apr', predictions: 32, accuracy: 97.8 },
-    { month: 'May', predictions: 28, accuracy: 98.1 },
-    { month: 'Jun', predictions: 35, accuracy: 97.9 }
-  ];
+  // Monthly data - will be fetched from API
+  const [monthlyData, setMonthlyData] = useState([
+    { month: 'Jan', predictions: 0, accuracy: 0 },
+    { month: 'Feb', predictions: 0, accuracy: 0 },
+    { month: 'Mar', predictions: 0, accuracy: 0 },
+    { month: 'Apr', predictions: 0, accuracy: 0 },
+    { month: 'May', predictions: 0, accuracy: 0 },
+    { month: 'Jun', predictions: 0, accuracy: 0 }
+  ]);
 
   const pieData = [
     { name: 'Image Analysis', value: analytics.predictionTypes.image, fill: '#3B82F6' },

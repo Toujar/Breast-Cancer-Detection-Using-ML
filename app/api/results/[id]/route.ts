@@ -34,6 +34,10 @@ export async function GET(
       }
     }
 
+    // Include gradcam and shap if requested
+    const includeGradcam = request.nextUrl.searchParams.get('gradcam') === 'true';
+    const includeShap = request.nextUrl.searchParams.get('shap') === 'true';
+
     return NextResponse.json({
       id: doc.predictionId,
       type: doc.type,
@@ -41,6 +45,8 @@ export async function GET(
       confidence: doc.confidence,
       inputData: doc.inputData,
       modelMetrics: doc.modelMetrics,
+      gradcam: (includeGradcam && doc.gradcam) ? doc.gradcam : undefined,
+      shap: (includeShap && doc.shap) ? doc.shap : undefined,
       timestamp: doc.timestamp,
       userId: doc.userId,
     });

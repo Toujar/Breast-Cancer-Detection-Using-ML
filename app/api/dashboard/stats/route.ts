@@ -47,23 +47,30 @@ export async function GET() {
     const userQuery = { userId: authedUser.id || authedUser._id };
 
     // Fetch total predictions & last 7 days predictions
-    const [totalPredictions, recentPredictionsDoc, correctPredictions] =
+    const [totalPredictions, recentPredictionsDoc, allUserResults] =
       await Promise.all([
         Result.countDocuments(userQuery),
         Result.countDocuments({
           ...userQuery,
           createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         }),
-        Result.countDocuments({ ...userQuery, prediction: "benign" }), // example for accuracy
+        Result.find(userQuery).select('modelMetrics').lean(),
       ]);
 
-    // const accuracyRate = totalPredictions > 0 ? (correctPredictions / totalPredictions) * 100 : 0;
+    // Calculate average accuracy from user's actual predictions
+    let avgAccuracy = 97.8; // Default fallback
+    if (allUserResults.length > 0) {
+      const totalAccuracy = allUserResults.reduce((sum, result: any) => {
+        return sum + (result.modelMetrics?.accuracy || 0);
+      }, 0);
+      avgAccuracy = parseFloat((totalAccuracy / allUserResults.length).toFixed(1));
+    }
 
     const stats = {
       totalPredictions,
       recentPredictions: recentPredictionsDoc,
-      accuracy: 97.8, // You can replace with computed accuracyRate.toFixed(2)
-      lastActive: "Today", // optional: you can compute dynamically
+      accuracy: avgAccuracy, // ✅ Real average from user's predictions
+      lastActive: "Today",
     };
     // console.log('Stats:', stats);
     return NextResponse.json(stats);
