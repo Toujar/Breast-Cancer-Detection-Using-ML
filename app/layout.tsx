@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
+import { AIChatbotProvider } from '@/components/ai-chatbot-provider';
 // import { AuthProvider } from '@/lib/auth-context';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <AIChatbotProvider>
           {children}
           <Toaster />
+        </AIChatbotProvider>
       </body>
     </html>
   );
