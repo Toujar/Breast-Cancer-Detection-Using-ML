@@ -109,10 +109,7 @@ export default function DashboardClient() {
     }
   };
 
-  // const handleLogout = () => {
-  //   logout();
-  //   router.push('/auth/login');
-  // };
+  
   const handleLogout = async () => {
     // clear cookie
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -127,12 +124,7 @@ export default function DashboardClient() {
     );
   }
 
-  // if (!user) return null;
-  //  if (!user) {
-  //   console.log('No user found, redirecting to /auth');
-  //   router.push('/auth');
-  //   return null;
-  // }
+ 
 
   return (
     <div className="min-h-screen bg-gray-50">
