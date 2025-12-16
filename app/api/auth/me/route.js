@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import connectDB from "@/lib/mongodb";
+import User from "@/models/User";
 
 export async function GET() {
   try {
@@ -12,13 +14,28 @@ export async function GET() {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // Connect to database and fetch full user data
+    await connectDB();
+    const user = await User.findById(decoded.id).select('-password').lean();
+    
+    if (!user) {
+      return NextResponse.json({ user: null }, { status: 401 });
+    }
+
     return NextResponse.json({
       user: {
-        id: decoded.id,
-        email: decoded.email,
-        username: decoded.username,
-        role: decoded.role,
-        location: decoded.location || null, // <-- added location
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        location: user.location,
+        phoneNumber: user.phoneNumber,
+        age: user.age,
+        // Doctor-specific fields
+        specialization: user.specialization,
+        hospital: user.hospital,
+        registrationNumber: user.registrationNumber,
+        experience: user.experience,
       },
     });
   } catch (err) {

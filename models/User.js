@@ -60,13 +60,18 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     age: { type: Number, min: 0, max: 120 },
     phoneNumber: { type: String, trim: true },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: { type: String, enum: ["user", "admin", "doctor"], default: "user" },
     isActive: { type: Boolean, default: true },
     location: {
       type: String,
       required: true, // enforce location at signup
       trim: true,
     },
+    // Doctor-specific fields
+    specialization: { type: String, trim: true }, // For doctors only
+    hospital: { type: String, trim: true }, // For doctors only
+    registrationNumber: { type: String, trim: true }, // For doctors only
+    experience: { type: Number, min: 0 }, // For doctors only
   },
   { timestamps: true }
 );

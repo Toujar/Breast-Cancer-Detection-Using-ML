@@ -8,7 +8,7 @@ export function useChatbotContext() {
       return 'Prediction Analysis - Help users understand how to upload images and interpret prediction results';
     }
     if (path.includes('/results')) {
-      return 'Results Interpretation - Explain prediction confidence, risk levels, and recommended actions';
+      return 'Results Interpretation - Explain prediction confidence, risk levels, recommended actions, and help users understand how to book appointments with doctors';
     }
     if (path.includes('/dashboard')) {
       return 'Dashboard Overview - Help users navigate their medical history and understand trends';

@@ -155,6 +155,11 @@ export default function AuthPage() {
   const [age, setAge] = useState<number | "">("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [location, setLocation] = useState(""); // <-- new field
+  const [userType, setUserType] = useState<"user" | "doctor">("user");
+  const [specialization, setSpecialization] = useState("");
+  const [hospital, setHospital] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [experience, setExperience] = useState<number | "">("");
   const [message, setMessage] = useState("");
   const router = useRouter();
 //   const karnatakaDistricts = [
@@ -213,7 +218,14 @@ const karnatakaDistricts = [
           password,
           age: age === "" ? undefined : Number(age),
           phoneNumber,
-          location, // <-- include location
+          location,
+          role: userType,
+          ...(userType === "doctor" && {
+            specialization,
+            hospital,
+            registrationNumber,
+            experience: experience === "" ? undefined : Number(experience),
+          }),
         };
 
     const res = await fetch(endpoint, {
@@ -233,7 +245,13 @@ const karnatakaDistricts = [
         const meRes = await fetch("/api/auth/me", { credentials: "include" });
         const meData = await meRes.json();
         const role = meData?.user?.role;
-        router.push(role === "admin" ? "/admin" : "/dashboard");
+        if (role === "admin") {
+          router.push("/admin");
+        } else if (role === "doctor") {
+          router.push("/doctor-dashboard");
+        } else {
+          router.push("/dashboard");
+        }
       } catch {
         router.push("/dashboard");
       }
@@ -260,6 +278,33 @@ const karnatakaDistricts = [
         <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           {!isLogin && (
             <>
+              {/* User Type Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">I am a:</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="user"
+                      checked={userType === "user"}
+                      onChange={(e) => setUserType(e.target.value as "user" | "doctor")}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Patient</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="doctor"
+                      checked={userType === "doctor"}
+                      onChange={(e) => setUserType(e.target.value as "user" | "doctor")}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Doctor</span>
+                  </label>
+                </div>
+              </div>
+
               <input
                 type="text"
                 placeholder="Username"
@@ -268,27 +313,60 @@ const karnatakaDistricts = [
                 className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
                 required
               />
-              {/* <input
-                type="text"
-                placeholder="City / District"
+
+              <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
                 required
-              /> */}
-               <select
-      value={location}
-      onChange={(e) => setLocation(e.target.value)}
-      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
-      required
-    >
-      <option value="">Select your district</option>
-      {karnatakaDistricts.map((dist) => (
-        <option key={dist} value={dist}>
-          {dist}
-        </option>
-      ))}
-    </select>
+              >
+                <option value="">Select your district</option>
+                {karnatakaDistricts.map((dist) => (
+                  <option key={dist} value={dist}>
+                    {dist}
+                  </option>
+                ))}
+              </select>
+
+              {/* Doctor-specific fields */}
+              {userType === "doctor" && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Specialization (e.g., Oncologist, Radiologist)"
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Hospital/Clinic Name"
+                    value={hospital}
+                    onChange={(e) => setHospital(e.target.value)}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Medical Registration Number"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="Years of Experience"
+                    value={experience}
+                    onChange={(e) => setExperience(e.target.value === "" ? "" : Number(e.target.value))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                    min={0}
+                    max={50}
+                    required
+                  />
+                </>
+              )}
             </>
           )}
           <input

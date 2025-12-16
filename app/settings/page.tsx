@@ -23,6 +23,7 @@ import {
   Key,
   LogOut
 } from 'lucide-react';
+import { UserNotifications } from '@/components/user-notifications';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
@@ -210,10 +211,13 @@ export default function SettingsPage() {
                 </div>
                 <span className="text-xs text-gray-500">{user?.email ?? 'user@example.com'}</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <div className="flex items-center space-x-3">
+                <UserNotifications />
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>

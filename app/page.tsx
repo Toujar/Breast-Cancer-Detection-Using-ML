@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +17,10 @@ import {
   ArrowRight,
   CheckCircle,
   Heart,
-  Stethoscope
+  Stethoscope,
+  LogOut
 } from 'lucide-react';
+import { UserNotifications } from '@/components/user-notifications';
 // import { useAuth } from '@/lib/auth-context';
 
 
@@ -28,6 +31,7 @@ export default function Home() {
 
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
   // const { user } = useAuth();
   const [stats, setStats] = useState({
     totalPredictions: 1247,
@@ -35,6 +39,16 @@ export default function Home() {
     usersServed: 342,
     modelsActive: 3
   });
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setUser(null);
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -103,15 +117,25 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-700">Welcome, {user.email}</span>
-                  <Link href="/dashboard">
+                  <span className="text-sm text-gray-700">Welcome, {user.username || user.email}</span>
+                  <Link href={user.role === 'doctor' ? '/doctor-dashboard' : '/dashboard'}>
                     <Button
                       size="sm"
                       className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white hover:from-blue-500 hover:to-indigo-500 transition-all shadow-md"
                     >
-                      Dashboard
+                      {user.role === 'doctor' ? 'Doctor Dashboard' : 'Dashboard'}
                     </Button>
                   </Link>
+                  {user.role !== 'doctor' && <UserNotifications />}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="border-red-500 text-red-500 hover:bg-red-50 transition-all"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
@@ -124,7 +148,7 @@ export default function Home() {
                       Login
                     </Button>
                   </Link>
-                  <Link href="/auth/signup">
+                  <Link href="/auth">
                     <Button
                       size="sm"
                       className="bg-gradient-to-r from-green-400 to-teal-500 text-white hover:from-teal-500 hover:to-green-400 transition-all shadow-md"

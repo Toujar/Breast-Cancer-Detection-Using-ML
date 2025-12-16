@@ -25,7 +25,7 @@ export async function POST(req) {
     }
 
     const isAdmin = user.email?.toLowerCase() === 'admin@gmail.com';
-    const effectiveRole = isAdmin ? 'admin' : 'user';
+    const effectiveRole = isAdmin ? 'admin' : user.role;
 
     const token = jwt.sign(
       { id: user._id, email: user.email, username: user.username, role: effectiveRole , location: user.location},

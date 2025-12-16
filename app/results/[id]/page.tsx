@@ -53,10 +53,15 @@ import {
   Phone,
   MapPin,
   Users,
-  Star
+  Star,
+  LogOut
 } from 'lucide-react';
+import { UserNotifications } from '@/components/user-notifications';
 // import { useAuth } from '@/lib/auth-context';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { NearbyDoctorsSection } from '@/components/nearby-doctors-section';
+import { RealDoctorsSection } from '@/components/real-doctors-section';
+import { AllDoctorsSection } from '@/components/all-doctors-section';
 
 interface PredictionResult {
   id: string;
@@ -117,8 +122,17 @@ export default function ResultsPage() {
   // const [user, setUser] = useState<{ email: string; username: string; role: string } | null>(null);
   const [user, setUser] = useState<{ email: string; username: string; role: string; location?: string } | null>(null);
 
-
   const predictionId = params.id as string;
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setUser(null);
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -357,10 +371,24 @@ export default function ResultsPage() {
                 <p className="text-xs text-gray-500">Prediction ID: {result.id.substring(0, 8)}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">
-                {user ? `${user.username}` : ''}
-              </p>
+            <div className="flex items-center space-x-3">
+              {user && (
+                <>
+                  <p className="text-sm text-gray-600">
+                    {user.username}
+                  </p>
+                  <UserNotifications />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="border-red-500 text-red-500 hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1432,27 +1460,16 @@ export default function ResultsPage() {
                   )}
                 </div>
 
-                {/* Doctors */}
-                <div className="mb-4 p-4 rounded-lg shadow-md bg-white border-l-4 border-green-500">
-                  <h5 className="font-semibold text-green-700 mb-1">👩‍⚕️ Doctors (Cancer Specialists)</h5>
-                  <p className="text-sm text-gray-700 mb-3">Meet these doctors for breast examination.</p>
-
-                  {doctors.filter(d => d.city.toLowerCase() === user?.location?.toLowerCase()).length > 0 ? (
-                    doctors
-                      .filter(d => d.city.toLowerCase() === user?.location?.toLowerCase())
-                      .map((d, idx) => (
-                        <div key={idx} className="mb-3 p-3 bg-gray-50 rounded-lg shadow-sm">
-                          <p className="text-sm text-gray-800 font-medium">
-                            {d.name} — <span className="font-semibold">{d.city}</span>
-                          </p>
-
-
-                        </div>
-                      ))
-                  ) : (
-                    <p className="text-sm">No specialists found. Visit your PHC for referral.</p>
-                  )}
-                </div>
+                {/* Real Doctors with Appointment Booking */}
+                <RealDoctorsSection 
+                  userLocation={user?.location} 
+                  aiResult={{
+                    riskLevel: result.prediction === 'benign' ? 'Low' : 'High',
+                    confidence: result.confidence,
+                    summary: `AI analysis shows ${result.prediction} classification with ${result.confidence.toFixed(1)}% confidence`,
+                    predictionId: result.id
+                  }}
+                />
 
                 {/* Diagnostics */}
                 <div className="p-4 rounded-lg shadow-md bg-white border-l-4 border-purple-500">
@@ -1831,6 +1848,56 @@ export default function ResultsPage() {
                   </div>
                 </Link>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* 🏥 Book Doctor Appointment Section - Spans both columns */}
+          <Card className="lg:col-span-2 shadow-xl rounded-3xl mb-6 overflow-hidden glass-card border-2 border-green-300 bg-gradient-to-br from-green-50/95 via-white/95 to-emerald-50/95">
+            <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6">
+              <CardTitle className="flex items-center space-x-3 text-2xl">
+                <Stethoscope className="h-7 w-7" />
+                <span>Book Appointment with Verified Doctors</span>
+              </CardTitle>
+              <p className="text-green-100 mt-2">
+                Connect with certified oncologists and breast cancer specialists in {user?.location || 'your area'}
+              </p>
+            </CardHeader>
+            
+            <CardContent className="p-6">
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Your AI Screening Summary
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-center p-3 bg-white rounded-lg">
+                    <p className="font-medium text-gray-700">Risk Level</p>
+                    <p className={`text-lg font-bold ${result.prediction === 'benign' ? 'text-green-600' : 'text-red-600'}`}>
+                      {result.prediction === 'benign' ? 'Low' : 'High'}
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg">
+                    <p className="font-medium text-gray-700">AI Confidence</p>
+                    <p className="text-lg font-bold text-blue-600">{result.confidence.toFixed(1)}%</p>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg">
+                    <p className="font-medium text-gray-700">Recommendation</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {result.prediction === 'benign' ? 'Regular checkup' : 'Immediate consultation'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <AllDoctorsSection 
+                userLocation={user?.location} 
+                aiResult={{
+                  riskLevel: result.prediction === 'benign' ? 'Low' : 'High',
+                  confidence: result.confidence,
+                  summary: `AI analysis shows ${result.prediction} classification with ${result.confidence.toFixed(1)}% confidence`,
+                  predictionId: result.id
+                }}
+              />
             </CardContent>
           </Card>
 

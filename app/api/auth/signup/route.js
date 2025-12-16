@@ -8,7 +8,7 @@ import User from "@/models/User";
 export async function POST(req) {
   try {
     await connectDB();
-    const { username, email, password, age, phoneNumber, role, location } = await req.json();
+    const { username, email, password, age, phoneNumber, role, location, specialization, hospital, registrationNumber, experience } = await req.json();
 
     if (!username || !email || !password || !location) {
       return NextResponse.json(
@@ -45,6 +45,12 @@ export async function POST(req) {
       phoneNumber: enforcedPhone,
       role: enforcedRole,
       location: enforcedLocation,
+      ...(role === "doctor" && !isAdmin && {
+        specialization,
+        hospital,
+        registrationNumber,
+        experience,
+      }),
     });
 
     const token = jwt.sign(

@@ -22,6 +22,7 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
+import { UserNotifications } from '@/components/user-notifications';
 // import { useAuth } from '@/lib/auth-context';
 
 interface DashboardStats {
@@ -151,10 +152,13 @@ export default function DashboardClient() {
                 </div>
                 <span className="text-xs text-gray-500">{user?.email ?? 'user@example.com'}</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <div className="flex items-center space-x-3">
+                <UserNotifications />
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
