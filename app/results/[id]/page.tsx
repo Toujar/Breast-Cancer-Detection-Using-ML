@@ -1417,107 +1417,54 @@ export default function ResultsPage() {
 
 
 
-          {/* 🌾 Recommended Hospitals & Doctors - Spans both columns */}
-          <Card className="lg:col-span-2 shadow-xl mb-6 bg-gradient-to-br from-blue-50/95 to-indigo-100/95 glass-card border-2 border-blue-300">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-lg p-4">
-              <CardTitle className="flex items-center space-x-2 text-white">
-                <Building className="h-5 w-5" />
-                <span>Nearby Hospitals & Cancer Care in {user?.location}</span>
+          {/* 🏥 Book Doctor Appointment Section - Spans both columns */}
+          <Card className="lg:col-span-2 shadow-xl rounded-3xl mb-6 overflow-hidden glass-card border-2 border-green-300 bg-gradient-to-br from-green-50/95 via-white/95 to-emerald-50/95">
+            <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6">
+              <CardTitle className="flex items-center space-x-3 text-2xl">
+                <Stethoscope className="h-7 w-7" />
+                <span>Book Appointment with Verified Doctors</span>
               </CardTitle>
-            </CardHeader>
-
-            <CardContent className="p-6 space-y-8">
-              {/* Intro */}
-              <p className="text-sm text-gray-800 leading-relaxed">
-                🌾 Hello! Based on your location <strong>{user?.location || "your area"}</strong>, here are
-                <strong> trusted hospitals, cancer doctors, and testing centres </strong> near you.
-                These places help with <strong>breast pain, lumps, or early cancer checks</strong>.
+              <p className="text-green-100 mt-2">
+                Connect with certified oncologists and breast cancer specialists in {user?.location || 'your area'}
               </p>
-
-              {/* Nearby */}
-              <div>
-                <h4 className="font-semibold text-blue-800 mb-3">📍 Hospitals, Doctors & Labs Near You</h4>
-
-                {/* Hospitals */}
-                <div className="mb-4 p-4 rounded-lg shadow-md bg-white border-l-4 border-blue-500">
-                  <h5 className="font-semibold text-blue-700 mb-1">🏥 Hospitals</h5>
-                  <p className="text-sm text-gray-700 mb-3">Visit these hospitals for check-up and treatment.</p>
-
-                  {hospitals.filter(h => h.city.toLowerCase() === user?.location?.toLowerCase()).length > 0 ? (
-                    hospitals
-                      .filter(h => h.city.toLowerCase() === user?.location?.toLowerCase())
-                      .map((h, idx) => (
-                        <div key={idx} className="mb-3 p-3 bg-gray-50 rounded-lg shadow-sm">
-                          <p className="text-sm text-gray-800 font-medium">
-                            {h.name} — <span className="font-semibold">{h.city}</span>
-                          </p>
-
-
-                        </div>
-                      ))
-                  ) : (
-                    <p className="text-sm">No nearby hospitals found. Please visit your nearest PHC.</p>
-                  )}
-                </div>
-
-                {/* Real Doctors with Appointment Booking */}
-                <RealDoctorsSection 
-                  userLocation={user?.location} 
-                  aiResult={{
-                    riskLevel: result.prediction === 'benign' ? 'Low' : 'High',
-                    confidence: result.confidence,
-                    summary: `AI analysis shows ${result.prediction} classification with ${result.confidence.toFixed(1)}% confidence`,
-                    predictionId: result.id
-                  }}
-                />
-
-                {/* Diagnostics */}
-                <div className="p-4 rounded-lg shadow-md bg-white border-l-4 border-purple-500">
-                  <h5 className="font-semibold text-purple-700 mb-1">🧪 Diagnostic & Testing Centres</h5>
-                  <p className="text-sm text-gray-700 mb-3">These centres offer mammograms & lab tests.</p>
-
-                  {diagnostics.filter(c => c.city.toLowerCase() === user?.location?.toLowerCase()).length > 0 ? (
-                    diagnostics
-                      .filter(c => c.city.toLowerCase() === user?.location?.toLowerCase())
-                      .map((c, idx) => (
-                        <div key={idx} className="mb-3 p-3 bg-gray-50 rounded-lg shadow-sm">
-                          <p className="text-sm text-gray-800 font-medium">
-                            {c.name} — <span className="font-semibold">{c.city}</span>
-                          </p>
-
-
-                        </div>
-                      ))
-                  ) : (
-                    <p className="text-sm">No labs found. Visit your district hospital for screening.</p>
-                  )}
+            </CardHeader>
+            
+            <CardContent className="p-6">
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Your AI Screening Summary
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-center p-3 bg-white rounded-lg">
+                    <p className="font-medium text-gray-700">Risk Level</p>
+                    <p className={`text-lg font-bold ${result.prediction === 'benign' ? 'text-green-600' : 'text-red-600'}`}>
+                      {result.prediction === 'benign' ? 'Low' : 'High'}
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg">
+                    <p className="font-medium text-gray-700">AI Confidence</p>
+                    <p className="text-lg font-bold text-blue-600">{result.confidence.toFixed(1)}%</p>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded-lg">
+                    <p className="font-medium text-gray-700">Recommendation</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {result.prediction === 'benign' ? 'Regular checkup' : 'Immediate consultation'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Major Hospitals */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">🌐 Other Major Hospitals in Karnataka</h4>
-                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  <li>KIDWAI Memorial Institute of Oncology – Bengaluru</li>
-                  <li>St. John’s Medical College Hospital – Bengaluru</li>
-                  <li>KMC Hospital – Mangaluru</li>
-                  <li>JSS Hospital – Mysuru</li>
-                  <li>SDM Hospital – Dharwad</li>
-                </ul>
-              </div>
-
-              {/* Guidance */}
-              <div className="p-4 rounded-lg shadow-md bg-white border-l-4 border-yellow-500">
-                <h5 className="font-semibold text-yellow-700 mb-2">💡 Easy Guidance</h5>
-                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  <li>🏥 Go to your nearest <strong>Primary Health Centre (PHC)</strong>.</li>
-                  <li>🩺 Ask for a referral letter to district hospital.</li>
-                  <li>🚌 Use <strong>Ayushman Bharat</strong> scheme for treatment cost.</li>
-                  <li>👩‍⚕️ Early check-up = better treatment & faster recovery.</li>
-                </ul>
-              </div>
+              <AllDoctorsSection 
+                userLocation={user?.location} 
+                aiResult={{
+                  riskLevel: result.prediction === 'benign' ? 'Low' : 'High',
+                  confidence: result.confidence,
+                  summary: `AI analysis shows ${result.prediction} classification with ${result.confidence.toFixed(1)}% confidence`,
+                  predictionId: result.id
+                }}
+              />
             </CardContent>
-
           </Card>
 
           {/* 💡 Personalized Health Tips - Spans both columns */}
@@ -1851,55 +1798,7 @@ export default function ResultsPage() {
             </CardContent>
           </Card>
 
-          {/* 🏥 Book Doctor Appointment Section - Spans both columns */}
-          <Card className="lg:col-span-2 shadow-xl rounded-3xl mb-6 overflow-hidden glass-card border-2 border-green-300 bg-gradient-to-br from-green-50/95 via-white/95 to-emerald-50/95">
-            <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6">
-              <CardTitle className="flex items-center space-x-3 text-2xl">
-                <Stethoscope className="h-7 w-7" />
-                <span>Book Appointment with Verified Doctors</span>
-              </CardTitle>
-              <p className="text-green-100 mt-2">
-                Connect with certified oncologists and breast cancer specialists in {user?.location || 'your area'}
-              </p>
-            </CardHeader>
-            
-            <CardContent className="p-6">
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Your AI Screening Summary
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="font-medium text-gray-700">Risk Level</p>
-                    <p className={`text-lg font-bold ${result.prediction === 'benign' ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.prediction === 'benign' ? 'Low' : 'High'}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="font-medium text-gray-700">AI Confidence</p>
-                    <p className="text-lg font-bold text-blue-600">{result.confidence.toFixed(1)}%</p>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="font-medium text-gray-700">Recommendation</p>
-                    <p className="text-sm font-medium text-gray-800">
-                      {result.prediction === 'benign' ? 'Regular checkup' : 'Immediate consultation'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <AllDoctorsSection 
-                userLocation={user?.location} 
-                aiResult={{
-                  riskLevel: result.prediction === 'benign' ? 'Low' : 'High',
-                  confidence: result.confidence,
-                  summary: `AI analysis shows ${result.prediction} classification with ${result.confidence.toFixed(1)}% confidence`,
-                  predictionId: result.id
-                }}
-              />
-            </CardContent>
-          </Card>
+          
 
           {/* 🌟 Final Encouragement Message - Spans both columns */}
           <Card className={`lg:col-span-2 border-0 shadow-xl rounded-2xl mb-6 glass-card ${result.prediction === 'benign' ? 'bg-gradient-to-r from-green-100/95 to-emerald-100/95' : 'bg-gradient-to-r from-blue-100/95 to-indigo-100/95'}`}>
