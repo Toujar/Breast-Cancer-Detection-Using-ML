@@ -215,7 +215,7 @@ async def predict_tabular_endpoint(payload: TabularInput):
         }
         
         # Run prediction - CRITICAL: Pass SELECTED_COLS for correct feature ordering
-        pred_class, prob, shap_b64 = predict_tabular(
+        pred_class, confidence, proba, shap_b64 = predict_tabular(
             TAB_MODEL,
             SCALER,
             input_data,
@@ -226,17 +226,30 @@ async def predict_tabular_endpoint(payload: TabularInput):
         # Convert to standard format
         # Wisconsin dataset: 0=malignant, 1=benign
         prediction = "benign" if pred_class == 1 else "malignant"
-        confidence = float(prob * 100)  # Convert to percentage
+        # confidence = float(prob * 100)  # Convert to percentage
         
+        # response = {
+        #     "prediction": prediction,
+        #     "confidence": round(confidence, 2),
+        #     "predicted_class": int(pred_class),
+        #     "probability": float(prob),
+        #     "shap": shap_b64 if payload.return_shap else None,
+        #     "metrics": TABULAR_MODEL_METRICS,
+        #     "timestamp": datetime.utcnow().isoformat(),
+        #     "type": "tabular"
+        # }
         response = {
-            "prediction": prediction,
-            "confidence": round(confidence, 2),
-            "predicted_class": int(pred_class),
-            "probability": float(prob),
-            "shap": shap_b64 if payload.return_shap else None,
-            "metrics": TABULAR_MODEL_METRICS,
-            "timestamp": datetime.utcnow().isoformat(),
-            "type": "tabular"
+               "prediction": prediction,
+               "confidence": round(confidence, 2),
+               "probabilities": {
+                       "malignant": round(proba[0] * 100, 2),
+                       "benign": round(proba[1] * 100, 2),
+                },
+               "predicted_class": int(pred_class),
+               "shap": shap_b64 if payload.return_shap else None,
+               "metrics": TABULAR_MODEL_METRICS,
+               "timestamp": datetime.utcnow().isoformat(),
+               "type": "tabular"
         }
         
         return JSONResponse(response)
