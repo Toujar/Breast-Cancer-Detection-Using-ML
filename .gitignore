@@ -104,6 +104,9 @@ instance/
 mi-backend/dataset/*
 !mi-backend/dataset/README.md
 
+# Ultrasound dataset (large medical images)
+ultrasound_dataset/
+
 # ✅ Trained models (keep models for Git LFS)
 !mi-backend/model/
 !mi-backend/model/*.pkl
@@ -117,3 +120,32 @@ mi-backend/dataset/*
 # Allow lib folder
 !lib/
 !lib/**
+# --- Production Optimization ---
+# Build outputs
+.next/
+dist/
+build/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+
+# Documentation (development only)
+TROUBLESHOOTING.md
+PROJECT_STRUCTURE.md
+CLEANUP_SUMMARY.md
+WEBHOOK_*.md
+DEPLOYMENT_OPTIMIZATION.md
+
+# Test files
+**/test-*
+**/*test*
+
+# Cache directories
+.cache/
+.parcel-cache/

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser, SignOutButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,40 +72,70 @@ export function DoctorPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentDoctor, setCurrentDoctor] = useState<Doctor | null>(null);
   const [doctorLoading, setDoctorLoading] = useState(true);
+  const { user, isLoaded } = useUser();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleLogout = () => {
+    router.push('/');
   };
 
   useEffect(() => {
-    fetchCurrentDoctor();
-    fetchAppointmentRequests();
-  }, []);
+    if (isLoaded && user) {
+      fetchCurrentDoctor();
+      fetchAppointmentRequests();
+    }
+  }, [isLoaded, user]);
 
   const fetchCurrentDoctor = async () => {
     setDoctorLoading(true);
     try {
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        const data = await response.json();
-        const user = data.user;
-        if (user && user.role === 'doctor') {
+      if (user) {
+        const userRole = (user.publicMetadata?.role as string) || 'user';
+        if (userRole === 'doctor') {
+          // Try to fetch doctor details from MongoDB first
+          try {
+            const response = await fetch('/api/doctors', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ clerkId: user.id }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.doctor) {
+                const doctor = data.doctor;
+                setCurrentDoctor({
+                  id: doctor.id,
+                  name: doctor.fullName,
+                  specialization: doctor.specialization,
+                  hospital: doctor.hospital,
+                  location: doctor.location,
+                  experience: doctor.experience,
+                  registrationNumber: doctor.licenseNumber,
+                  email: doctor.email,
+                  phoneNumber: doctor.phoneNumber,
+                  avatar: doctor.profileImage
+                });
+                return;
+              }
+            }
+          } catch (error) {
+            console.log('Could not fetch doctor from database, using Clerk data');
+          }
+
+          // Fallback to Clerk metadata if database fetch fails
           setCurrentDoctor({
             id: user.id,
-            name: user.username,
-            specialization: user.specialization || 'General Practitioner',
-            hospital: user.hospital || 'Private Practice',
-            location: user.location,
-            experience: user.experience || 0,
-            registrationNumber: user.registrationNumber || 'N/A',
-            email: user.email,
-            phoneNumber: user.phoneNumber
+            name: `Dr. ${user.firstName || 'Unknown'} ${user.lastName || 'Doctor'}`,
+            specialization: (user.publicMetadata?.specialization as string) || 'General Practitioner',
+            hospital: (user.publicMetadata?.hospital as string) || 'Private Practice',
+            location: (user.publicMetadata?.location as string) || 'Location not specified',
+            experience: (user.publicMetadata?.experience as number) || 0,
+            registrationNumber: (user.publicMetadata?.registrationNumber as string) || 'N/A',
+            email: user.emailAddresses[0]?.emailAddress || '',
+            phoneNumber: (user.publicMetadata?.phoneNumber as string) || ''
           });
         }
       }
@@ -184,28 +215,28 @@ export function DoctorPanel() {
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'high': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'low': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   };
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case 'High': return 'text-red-600 bg-red-50';
-      case 'Medium': return 'text-yellow-600 bg-yellow-50';
-      case 'Low': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'High': return 'text-red-400 bg-red-500/10 border border-red-500/30';
+      case 'Medium': return 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/30';
+      case 'Low': return 'text-green-400 bg-green-500/10 border border-green-500/30';
+      default: return 'text-gray-400 bg-gray-500/10 border border-gray-500/30';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'accepted': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'rejected': return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'completed': return <CheckCircle className="h-4 w-4 text-blue-600" />;
-      default: return <Clock className="h-4 w-4 text-yellow-600" />;
+      case 'accepted': return <CheckCircle className="h-4 w-4 text-green-400" />;
+      case 'rejected': return <XCircle className="h-4 w-4 text-red-400" />;
+      case 'completed': return <CheckCircle className="h-4 w-4 text-blue-400" />;
+      default: return <Clock className="h-4 w-4 text-yellow-400" />;
     }
   };
 
@@ -222,75 +253,79 @@ export function DoctorPanel() {
     return new Date(req.createdAt).toDateString() === today;
   }).length;
 
-  if (doctorLoading) {
+  if (!isLoaded || doctorLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading doctor information...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading doctor information...</p>
         </div>
       </div>
     );
   }
 
-  if (!currentDoctor) {
+  if (!user || !currentDoctor) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-          <p className="text-gray-600">You need to be logged in as a doctor to access this panel.</p>
+          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-400" />
+          <h2 className="text-xl font-semibold mb-2 text-white">Access Denied</h2>
+          <p className="text-gray-400">You need to be logged in as a doctor to access this panel.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Doctor Header */}
-        <Card>
-          <CardHeader>
+        <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+          <CardHeader className="border-b border-gray-700/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
+                <Avatar className="h-16 w-16 ring-2 ring-blue-500/30">
                   <AvatarImage src={currentDoctor.avatar} />
-                  <AvatarFallback className="text-lg">
+                  <AvatarFallback className="text-lg bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400">
                     {currentDoctor.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h1 className="text-2xl font-bold">{currentDoctor.name}</h1>
-                  <p className="text-muted-foreground">{currentDoctor.specialization}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <h1 className="text-2xl font-bold text-white">{currentDoctor.name}</h1>
+                  <p className="text-gray-400">{currentDoctor.specialization}</p>
+                  <p className="text-sm text-gray-500">
                     {currentDoctor.hospital} • {currentDoctor.location}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-gray-500">
                     {currentDoctor.experience} years experience • Reg: {currentDoctor.registrationNumber}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{pendingCount}</div>
-                  <div className="text-sm text-muted-foreground">Pending</div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{pendingCount}</div>
+                  <div className="text-sm text-gray-400">Pending</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{todayCount}</div>
-                  <div className="text-sm text-muted-foreground">Today</div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-green-400 to-teal-400 bg-clip-text text-transparent">{todayCount}</div>
+                  <div className="text-sm text-gray-400">Today</div>
                 </div>
-                <Button size="sm" className="relative">
+                <Button size="sm" className="relative bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700">
                   <Bell className="h-4 w-4 mr-2" />
                   Notifications
                   {pendingCount > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs">
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500">
                       {pendingCount}
                     </Badge>
                   )}
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                <Button size="sm" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <SignOutButton>
+                    <div className="flex items-center">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </div>
+                  </SignOutButton>
                 </Button>
               </div>
             </div>
@@ -301,26 +336,26 @@ export function DoctorPanel() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Requests List */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+            <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-700/30">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Users className="h-5 w-5 text-blue-400" />
                   Appointment Requests
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="pending">
+                  <TabsList className="grid w-full grid-cols-4 bg-gray-700/50 border border-gray-600/30">
+                    <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">
                       Pending ({requests.filter(r => r.status === 'pending').length})
                     </TabsTrigger>
-                    <TabsTrigger value="accepted">
+                    <TabsTrigger value="accepted" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">
                       Accepted ({requests.filter(r => r.status === 'accepted').length})
                     </TabsTrigger>
-                    <TabsTrigger value="completed">
+                    <TabsTrigger value="completed" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">
                       Completed ({requests.filter(r => r.status === 'completed').length})
                     </TabsTrigger>
-                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="all" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">All</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value={activeTab} className="mt-4">
@@ -328,19 +363,19 @@ export function DoctorPanel() {
                       <div className="space-y-4">
                         {isLoading ? (
                           <div className="text-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                            <p className="text-gray-600">Loading appointment requests...</p>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                            <p className="text-gray-400">Loading appointment requests...</p>
                           </div>
                         ) : filteredRequests.length === 0 ? (
                           <div className="text-center py-8">
-                            <p className="text-gray-600">No {activeTab} requests found</p>
+                            <p className="text-gray-400">No {activeTab} requests found</p>
                           </div>
                         ) : (
                           filteredRequests.map((request) => (
                           <Card 
                             key={request._id} 
                             className={cn(
-                              "cursor-pointer transition-all hover:shadow-md",
+                              "cursor-pointer transition-all hover:shadow-md bg-gray-900/50 border-gray-700/30 hover:bg-gray-900/70",
                               selectedRequest?._id === request._id && "ring-2 ring-blue-500"
                             )}
                             onClick={() => setSelectedRequest(request)}
@@ -348,14 +383,14 @@ export function DoctorPanel() {
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center space-x-3">
-                                  <Avatar>
-                                    <AvatarFallback>
+                                  <Avatar className="ring-2 ring-gray-600">
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400">
                                       {request.patientName.split(' ').map(n => n[0]).join('')}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <h3 className="font-semibold">{request.patientName}</h3>
-                                    <p className="text-sm text-muted-foreground">
+                                    <h3 className="font-semibold text-white">{request.patientName}</h3>
+                                    <p className="text-sm text-gray-400">
                                       Age: {request.patientAge} • {request.patientLocation}
                                     </p>
                                   </div>
@@ -370,12 +405,12 @@ export function DoctorPanel() {
 
                               <div className="grid grid-cols-2 gap-4 mb-3">
                                 <div className="flex items-center space-x-2 text-sm">
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  <span>{new Date(request.createdAt).toLocaleDateString()}</span>
+                                  <Calendar className="h-4 w-4 text-gray-400" />
+                                  <span className="text-gray-300">{new Date(request.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm">
-                                  <Activity className="h-4 w-4 text-muted-foreground" />
-                                  <span>{request.consultationMode}</span>
+                                  <Activity className="h-4 w-4 text-gray-400" />
+                                  <span className="text-gray-300 capitalize">{request.consultationMode}</span>
                                 </div>
                               </div>
 
@@ -385,7 +420,7 @@ export function DoctorPanel() {
                               )}>
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="font-medium">AI Risk Assessment</span>
-                                  <Badge variant="outline">
+                                  <Badge variant="outline" className="border-gray-600 text-gray-300">
                                     {request.aiResult.confidence}% confidence
                                   </Badge>
                                 </div>
@@ -405,7 +440,7 @@ export function DoctorPanel() {
                                       e.stopPropagation();
                                       handleRequestAction(request._id, 'accept');
                                     }}
-                                    className="flex-1"
+                                    className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700"
                                   >
                                     <CheckCircle className="h-4 w-4 mr-1" />
                                     Accept
@@ -417,7 +452,7 @@ export function DoctorPanel() {
                                       e.stopPropagation();
                                       handleRequestAction(request._id, 'reject');
                                     }}
-                                    className="flex-1"
+                                    className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                                   >
                                     <XCircle className="h-4 w-4 mr-1" />
                                     Decline
@@ -438,63 +473,63 @@ export function DoctorPanel() {
 
           {/* Request Details */}
           <div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+            <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-700/30">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <FileText className="h-5 w-5 text-blue-400" />
                   Request Details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {selectedRequest ? (
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold text-lg">{selectedRequest.patientName}</h3>
-                      <p className="text-muted-foreground">Patient Information</p>
+                      <h3 className="font-semibold text-lg text-white">{selectedRequest.patientName}</h3>
+                      <p className="text-gray-400">Patient Information</p>
                     </div>
 
-                    <Separator />
+                    <Separator className="bg-gray-700/50" />
 
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Age: {selectedRequest.patientAge} years</span>
+                        <User className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-300">Age: {selectedRequest.patientAge} years</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedRequest.patientContact}</span>
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-300">{selectedRequest.patientContact}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedRequest.patientLocation}</span>
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-300">{selectedRequest.patientLocation}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-300">
                           Requested: {new Date(selectedRequest.createdAt).toLocaleString()}
                         </span>
                       </div>
                       {selectedRequest.preferredDate && (
                         <div className="flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-300">
                             Preferred: {selectedRequest.preferredDate}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <Separator />
+                    <Separator className="bg-gray-700/50" />
 
                     <div>
-                      <h4 className="font-medium mb-2">AI Analysis Report</h4>
+                      <h4 className="font-medium mb-2 text-white">AI Analysis Report</h4>
                       <div className={cn(
                         "p-3 rounded-lg space-y-2",
                         getRiskColor(selectedRequest.aiResult.riskLevel)
                       )}>
                         <div className="flex justify-between items-center">
                           <span className="font-medium">Risk Level</span>
-                          <Badge>{selectedRequest.aiResult.riskLevel}</Badge>
+                          <Badge className="bg-gray-700/50 text-gray-300 border-gray-600">{selectedRequest.aiResult.riskLevel}</Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="font-medium">Confidence</span>
@@ -513,32 +548,32 @@ export function DoctorPanel() {
 
                     {selectedRequest.symptoms && (
                       <>
-                        <Separator />
+                        <Separator className="bg-gray-700/50" />
                         <div>
-                          <h4 className="font-medium mb-2">Patient Symptoms</h4>
-                          <p className="text-sm text-muted-foreground">
+                          <h4 className="font-medium mb-2 text-white">Patient Symptoms</h4>
+                          <p className="text-sm text-gray-400">
                             {selectedRequest.symptoms}
                           </p>
                         </div>
                       </>
                     )}
 
-                    <Separator />
+                    <Separator className="bg-gray-700/50" />
 
                     <div>
-                      <h4 className="font-medium mb-2">Consultation Mode</h4>
-                      <Badge variant="outline" className="capitalize">
+                      <h4 className="font-medium mb-2 text-white">Consultation Mode</h4>
+                      <Badge variant="outline" className="capitalize border-gray-600 text-gray-300">
                         {selectedRequest.consultationMode}
                       </Badge>
                     </div>
 
                     {selectedRequest.status === 'pending' && (
                       <>
-                        <Separator />
+                        <Separator className="bg-gray-700/50" />
                         <div className="space-y-2">
                           <Button 
                             onClick={() => handleRequestAction(selectedRequest._id, 'accept')}
-                            className="w-full"
+                            className="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white hover:from-green-600 hover:to-teal-700"
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Accept Appointment
@@ -546,7 +581,7 @@ export function DoctorPanel() {
                           <Button 
                             variant="outline"
                             onClick={() => handleRequestAction(selectedRequest._id, 'reject')}
-                            className="w-full"
+                            className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Decline Request
@@ -556,7 +591,7 @@ export function DoctorPanel() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center text-muted-foreground py-8">
+                  <div className="text-center text-gray-400 py-8">
                     <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Select a request to view details</p>
                   </div>

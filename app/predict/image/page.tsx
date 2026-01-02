@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useRef , useEffect} from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EnhancedNavbar } from '@/components/navbar/EnhancedNavbar';
 import { 
   Heart, 
   ArrowLeft, 
@@ -16,11 +18,10 @@ import {
   Info,
   Brain
 } from 'lucide-react';
-// import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
 export default function ImagePredictionPage() {
-  // const { user } = useAuth();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -28,22 +29,10 @@ export default function ImagePredictionPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
-  const [user, setUser] = useState<{ name: string } | null>(null);
 
-   useEffect(() => {
-      const fetchUser = async () => {
-        try {
-          const res = await fetch('/api/auth/me');
-          const data = await res.json();
-          setUser(data.user);
-        } catch (err) {
-          console.error("Error fetching user:", err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchUser();
-    }, []);
+  useEffect(() => {
+    // Middleware handles authentication, no need for manual redirect
+  }, []);
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -114,68 +103,42 @@ export default function ImagePredictionPage() {
     }
   };
 
-  if (!user) {
+  if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="p-8 text-center">
-            <Heart className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-            <p className="text-gray-600 mb-6">Please log in to access the image analysis system.</p>
-            <Link href="/auth">
-              <Button>Login</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
       </div>
     );
   }
 
+  // Middleware handles authentication redirect, so if we reach here, user should be authenticated
+  const userName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0] || 'User';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/dashboard" className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Dashboard
-              </Button>
-            </Link>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Image Analysis</h1>
-                <p className="text-xs text-gray-500">AI Mammogram Detection</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Dr. {user.name}</p>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+      {/* Enhanced Navigation with Clerk Integration */}
+      <EnhancedNavbar />
 
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center space-x-3">
-            <ImageIcon className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-white mb-4 flex items-center space-x-3">
+            <ImageIcon className="h-8 w-8 text-blue-400" />
             <span>Mammogram Image Analysis</span>
           </h1>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-gray-300 leading-relaxed">
             Upload a mammogram image for AI-powered analysis. Our convolutional neural network 
             will examine the image and provide predictions with confidence scores.
           </p>
         </div>
 
         {/* Info Alert */}
-        <Alert className="mb-8 border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="mb-8 border-blue-500/30 bg-blue-900/20 backdrop-blur-sm">
+          <Info className="h-4 w-4 text-blue-400" />
+          <AlertDescription className="text-blue-200">
             <strong>Supported Formats:</strong> JPEG, PNG, TIFF, DICOM. Maximum file size: 10MB. 
             For best results, use high-resolution mammogram images with clear tissue definition.
           </AlertDescription>
@@ -185,20 +148,20 @@ export default function ImagePredictionPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Upload Area */}
             <div className="lg:col-span-2">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-white">
                     <Upload className="h-5 w-5" />
                     <span>Upload Mammogram</span>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-gray-300">
                     Select or drag and drop a mammogram image for analysis
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {error && (
-                    <Alert variant="destructive" className="mb-6">
-                      <AlertDescription>{error}</AlertDescription>
+                    <Alert variant="destructive" className="mb-6 bg-red-900/20 border-red-500/30">
+                      <AlertDescription className="text-red-200">{error}</AlertDescription>
                     </Alert>
                   )}
 
@@ -206,8 +169,8 @@ export default function ImagePredictionPage() {
                     <div
                       className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
                         dragOver 
-                          ? 'border-blue-400 bg-blue-50' 
-                          : 'border-gray-300 hover:border-gray-400'
+                          ? 'border-blue-400 bg-blue-900/20' 
+                          : 'border-gray-600 hover:border-gray-500'
                       }`}
                       onDrop={handleDrop}
                       onDragOver={(e) => {
@@ -217,16 +180,17 @@ export default function ImagePredictionPage() {
                       onDragLeave={() => setDragOver(false)}
                     >
                       <FileImage className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      <h3 className="text-lg font-medium text-white mb-2">
                         Upload Mammogram Image
                       </h3>
-                      <p className="text-gray-600 mb-6">
+                      <p className="text-gray-300 mb-6">
                         Drag and drop your image here, or click to browse
                       </p>
                       <Button 
                         type="button" 
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
+                        className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Choose File
@@ -238,7 +202,7 @@ export default function ImagePredictionPage() {
                         onChange={handleFileInput}
                         className="hidden"
                       />
-                      <p className="text-xs text-gray-500 mt-4">
+                      <p className="text-xs text-gray-400 mt-4">
                         Supported: JPEG, PNG, TIFF, DICOM (Max: 10MB)
                       </p>
                     </div>
@@ -249,7 +213,7 @@ export default function ImagePredictionPage() {
                         <img
                           src={previewUrl || ''}
                           alt="Mammogram preview"
-                          className="w-full max-h-96 object-contain rounded-lg border border-gray-200"
+                          className="w-full max-h-96 object-contain rounded-lg border border-gray-600"
                         />
                         <div className="absolute top-4 right-4">
                           <Button
@@ -261,6 +225,7 @@ export default function ImagePredictionPage() {
                               setPreviewUrl(null);
                               setError('');
                             }}
+                            className="bg-gray-800 text-white hover:bg-gray-700"
                           >
                             Remove
                           </Button>
@@ -268,24 +233,24 @@ export default function ImagePredictionPage() {
                       </div>
 
                       {/* File Info */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-2">File Information</h4>
+                      <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/30">
+                        <h4 className="font-medium text-white mb-2">File Information</h4>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-600">Filename:</span>
-                            <p className="font-medium truncate">{selectedFile.name}</p>
+                            <span className="text-gray-400">Filename:</span>
+                            <p className="font-medium truncate text-white">{selectedFile.name}</p>
                           </div>
                           <div>
-                            <span className="text-gray-600">Size:</span>
-                            <p className="font-medium">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <span className="text-gray-400">Size:</span>
+                            <p className="font-medium text-white">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                           </div>
                           <div>
-                            <span className="text-gray-600">Type:</span>
-                            <p className="font-medium">{selectedFile.type}</p>
+                            <span className="text-gray-400">Type:</span>
+                            <p className="font-medium text-white">{selectedFile.type}</p>
                           </div>
                           <div>
-                            <span className="text-gray-600">Status:</span>
-                            <p className="font-medium text-green-600">Ready for Analysis</p>
+                            <span className="text-gray-400">Status:</span>
+                            <p className="font-medium text-green-400">Ready for Analysis</p>
                           </div>
                         </div>
                       </div>
@@ -297,32 +262,32 @@ export default function ImagePredictionPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">CNN Model Info</CardTitle>
+                  <CardTitle className="text-lg text-white">CNN Model Info</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <Brain className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-green-900">Deep Learning Model</p>
-                    <p className="text-xs text-green-700">Convolutional Neural Network</p>
+                  <div className="text-center p-4 bg-green-900/20 rounded-lg border border-green-500/30">
+                    <Brain className="h-8 w-8 text-green-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-green-200">Deep Learning Model</p>
+                    <p className="text-xs text-green-300">Convolutional Neural Network</p>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Architecture:</span>
-                      <span className="font-medium">DenseNet-121</span>
+                      <span className="text-gray-400">Architecture:</span>
+                      <span className="font-medium text-white">DenseNet-121</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Input Size:</span>
-                      <span className="font-medium">224x224</span>
+                      <span className="text-gray-400">Input Size:</span>
+                      <span className="font-medium text-white">224x224</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Accuracy:</span>
-                      <span className="font-medium text-green-600">94.2%</span>
+                      <span className="text-gray-400">Accuracy:</span>
+                      <span className="font-medium text-green-400">94.2%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Training Set:</span>
-                      <span className="font-medium">15K+ Images</span>
+                      <span className="text-gray-400">Training Set:</span>
+                      <span className="font-medium text-white">15K+ Images</span>
                     </div>
                   </div>
                 </CardContent>
@@ -331,7 +296,7 @@ export default function ImagePredictionPage() {
               <Button 
                 type="submit" 
                 size="lg" 
-                className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg"
+                className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg text-white"
                 disabled={isLoading || !selectedFile}
               >
                 {isLoading ? (
@@ -347,7 +312,7 @@ export default function ImagePredictionPage() {
                 )}
               </Button>
 
-              <div className="text-xs text-gray-500 text-center leading-relaxed">
+              <div className="text-xs text-gray-400 text-center leading-relaxed">
                 Image processing may take 5-10 seconds depending on file size. 
                 The AI will analyze tissue patterns and density variations.
               </div>

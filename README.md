@@ -1,187 +1,67 @@
-# 🩺 Breast Cancer Detection (Next.js + FastAPI)
+# 🩺 AI-Powered Breast Cancer Detection System
 
-An **AI-powered Breast Cancer Detection System** combining a **Next.js frontend** with a **Python FastAPI backend**.  
-Supports both **tabular data** and **image-based** predictions.
+A machine learning platform for breast cancer detection with 94.6% accuracy, featuring role-based dashboards for patients, doctors, and administrators.
 
----
+## 🌟 Features
 
-## 🚀 Features
-- 🧪 ML Models for:
-  - **Tabular dataset (numeric medical features)**
-  - **Image dataset (cell images)**
-- 🌐 Next.js frontend with modern UI
-- ⚡ FastAPI backend for inference
-- 📊 Interactive dashboard & results history
-- 🔄 REST API endpoints for prediction
-- 🎨 Styled with Tailwind CSS
+- **94.6% Accuracy** - Advanced ML models (XGBoost + CNN)
+- **Dual Analysis** - Image and tabular data processing
+- **Role-based Access** - Patient, Doctor, and Admin dashboards
+- **Appointment System** - AI-powered doctor recommendations
+- **Real-time Processing** - Instant predictions with confidence scores
 
----
+## 🚀 Tech Stack
 
-## 🛠 Tech Stack
-- **Frontend:** Next.js (TypeScript), Tailwind CSS, Axios
-- **Backend:** FastAPI (Python), Uvicorn
-- **Machine Learning:** Scikit-learn, TensorFlow / PyTorch (if image model), Pandas, NumPy
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: Python FastAPI, Node.js
+- **Database**: MongoDB with Mongoose
+- **Authentication**: Clerk Auth
+- **ML**: XGBoost, Scikit-learn, NumPy, Pandas
 
----
+## 📊 Model Performance
 
-## 📂 Project Structure
-```
+| Metric | Score |
+|--------|-------|
+| Accuracy | 94.6% |
+| Precision | 95.0% |
+| Recall | 95.0% |
+| F1-Score | 95.0% |
 
-Breast-Cancer-Detection/
-├── app/                 # Next.js app router
-│   ├── api/             # API routes (proxy to backend)
-│   ├── dashboard/       # Dashboard page
-│   ├── predict/         # Prediction form
-│   ├── results/         # Results page
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-│
-├── components/          # Reusable UI components
-├── hooks/               # Custom React hooks
-├── lib/                 # Helper functions
-│
-├── mi-backend/          # FastAPI backend
-│   ├── server.py        # Main FastAPI app
-│   ├── train\_tabular.py # Script to train tabular ML model
-│   ├── train\_image.py   # Script to train image model
-│   ├── requirements.txt # Python dependencies
-│   ├── dataset/         # Training dataset
-│   │   └── images/
-│   └── models/          # Saved ML models (.pkl / .h5)
-│
-├── node\_modules/
-├── package.json         # Frontend dependencies
-└── README.md
+## 🚀 Quick Start
 
-````
-
----
-
-## ⚙️ Installation & Setup
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/Toujar/Breast-Cancer-Detection-Using-ML.git
-cd Breast-Cancer-Detection-Using-ML
-````
-
----
-
-### 2. Backend (FastAPI + Python)
-
-1. Navigate to backend:
-
+1. **Clone and Install**
    ```bash
-   cd mi-backend
-   ```
-
-2. Create virtual environment:
-
-   ```bash
-   python -m venv .venv
-   ```
-
-3. Activate environment:
-
-   * Windows:
-
-     ```bash
-     .\.venv\Scripts\activate
-     ```
-   * Linux/Mac:
-
-     ```bash
-     source .venv/bin/activate
-     ```
-
-4. Install requirements:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. Start server:
-
-   ```bash
-   .\.venv\Scripts\python.exe -m uvicorn server:app --host 127.0.0.1 --port 8000 --reload
-   ```
-
-   Runs at → [http://127.0.0.1:8000](http://127.0.0.1:8000)
-   Docs at → [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-
----
-
-### 3. Frontend (Next.js)
-
-1. Go back to root :
-
-   ```bash
-   cd ..
-   ```
-
-2. Install dependencies:
-
-   ```bash
+   git clone <repository-url>
+   cd breast-cancer-detection
    npm install
    ```
 
-3. Run frontend:
-
+2. **Setup Python Environment**
    ```bash
-   npm run dev
+   python -m venv project/.venv
+   source project/.venv/bin/activate  # Linux/Mac
+   # OR project\.venv\Scripts\activate.bat  # Windows
+   pip install -r requirements.txt
    ```
 
-   App runs at → [http://localhost:3000](http://localhost:3000)
+3. **Environment Variables**
+   ```bash
+   cp .env.example .env.local
+   # Add your MongoDB URI and Clerk keys
+   ```
+
+4. **Run Application**
+   ```bash
+   npm run dev  # Frontend (port 3000)
+   cd project && python main.py  # Backend (port 8000)
+   ```
+
+## 👥 Team
+
+- **Swati** - Lead Data Scientist
+- **Toujar** - Full-Stack Developer  
+- **SudhRani** - Medical Advisor
 
 ---
 
-## 🔧 API Endpoints
-
-### Tabular Prediction
-
-`POST /predict/tabular`
-
-```json
-{
-  "mean_radius": 14.5,
-  "mean_texture": 20.5,
-  "mean_smoothness": 0.10
-}
-```
-
-Response:
-
-```json
-{
-  "prediction": "benign",
-  "confidence": 91.2
-}
-```
-
-### Image Prediction
-
-`POST /predict/image` (multipart/form-data with image upload)
-Response:
-
-```json
-{
-  "prediction": "malignant",
-  "confidence": 87.4
-}
-```
-
----
-
-## 📝 Future Improvements
-
-* ✅ User authentication (save history per user)
-* ✅ Deployment with Docker (frontend + backend)
-* ✅ Visualization of model explanations (SHAP, Grad-CAM)
-* ✅ Export results to PDF
-
----
-
-## 📜 License
-
-MIT License © 2025
+**⚠️ Medical Disclaimer**: This system assists medical professionals and should not replace professional medical advice.

@@ -37,9 +37,18 @@ except ImportError as e:
 
 # Check if model files exist
 models_dir = os.path.join(ROOT_DIR, 'models')
-required_models = ['image_model.pth', 'xgboost_model.pkl', 'scaler.pkl']
+new_image_model = os.path.join(ROOT_DIR, 'efficientnet_ultrasound.pth')
+required_models = ['xgboost_model.pkl', 'scaler.pkl']
 missing_models = []
 
+# Check for new EfficientNet ultrasound model
+if os.path.exists(new_image_model):
+    print(f"✅ Found: efficientnet_ultrasound.pth (NEW)")
+else:
+    print(f"❌ Missing: efficientnet_ultrasound.pth")
+    missing_models.append('efficientnet_ultrasound.pth')
+
+# Check for tabular models
 for model_file in required_models:
     model_path = os.path.join(models_dir, model_file)
     if os.path.exists(model_path):
@@ -51,9 +60,10 @@ for model_file in required_models:
 if missing_models:
     print("\n⚠️  Warning: Some model files are missing!")
     print("   The server will start but predictions may fail.")
-    print("   Please train the models first:")
-    print("   - python training/train_image.py")
-    print("   - python training/train_tabular.py")
+    if 'efficientnet_ultrasound.pth' in missing_models:
+        print("   - Train ultrasound model: Check your EfficientNet training script")
+    if any(m in missing_models for m in ['xgboost_model.pkl', 'scaler.pkl']):
+        print("   - Train tabular model: python training/train_tabular.py")
     print()
 
 print("=" * 60)

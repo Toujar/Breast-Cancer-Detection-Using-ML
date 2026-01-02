@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser, SignOutButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DoctorPanel } from './doctor-panel';
 import { DoctorNotifications } from './doctor-notifications';
@@ -20,17 +20,17 @@ import {
   LogOut
 } from 'lucide-react';
 
-// Real Karnataka doctors data
-const karnatakaDoctor = {
-  id: 'doc_001',
-  name: 'Dr. Rajesh Kumar Sharma',
-  specialization: 'Oncologist & Breast Cancer Specialist',
-  hospital: 'Kidwai Memorial Institute of Oncology',
-  location: 'Bangalore, Karnataka',
-  experience: 15,
-  qualification: 'MBBS, MD (Oncology), Fellowship in Breast Oncology',
-  registrationNumber: 'KMC-45789'
-};
+// Real Karnataka doctors data - will be replaced with Clerk user data
+const getKarnatakaDoctor = (user: any) => ({
+  id: user.id,
+  name: `Dr. ${user.firstName || 'Unknown'} ${user.lastName || 'Doctor'}`,
+  specialization: (user.publicMetadata?.specialization as string) || 'Oncologist & Breast Cancer Specialist',
+  hospital: (user.publicMetadata?.hospital as string) || 'Kidwai Memorial Institute of Oncology',
+  location: (user.publicMetadata?.location as string) || 'Bangalore, Karnataka',
+  experience: (user.publicMetadata?.experience as number) || 15,
+  qualification: (user.publicMetadata?.qualification as string) || 'MBBS, MD (Oncology), Fellowship in Breast Oncology',
+  registrationNumber: (user.publicMetadata?.registrationNumber as string) || 'KMC-45789'
+});
 
 // Dashboard statistics
 const dashboardStats = {
@@ -76,128 +76,148 @@ const recentActivity = [
 
 export function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { user, isLoaded } = useUser();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading doctor information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    router.push('/sign-in');
+    return null;
+  }
+
+  const karnatakaDoctor = getKarnatakaDoctor(user);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'appointment_completed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-green-400" />;
       case 'urgent_request':
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
+        return <AlertTriangle className="h-4 w-4 text-red-400" />;
       case 'appointment_scheduled':
-        return <Calendar className="h-4 w-4 text-blue-600" />;
+        return <Calendar className="h-4 w-4 text-blue-400" />;
       case 'report_reviewed':
-        return <FileText className="h-4 w-4 text-purple-600" />;
+        return <FileText className="h-4 w-4 text-purple-400" />;
       default:
-        return <Activity className="h-4 w-4 text-gray-600" />;
+        return <Activity className="h-4 w-4 text-gray-400" />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/30 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Doctor Dashboard</h1>
-            <p className="text-gray-600">{karnatakaDoctor.name} • {karnatakaDoctor.hospital}</p>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent">Doctor Dashboard</h1>
+            <p className="text-gray-400">{karnatakaDoctor.name} • {karnatakaDoctor.hospital}</p>
           </div>
           <div className="flex items-center space-x-4">
             <DoctorNotifications />
-            <Button>
+            <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700">
               <Calendar className="h-4 w-4 mr-2" />
               Schedule
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <SignOutButton>
+              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </SignOutButton>
           </div>
         </div>
       </div>
 
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 max-w-md">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="requests">Requests</TabsTrigger>
-            <TabsTrigger value="patients">Patients</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 max-w-md bg-gray-800/50 border border-gray-700/30">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">Overview</TabsTrigger>
+            <TabsTrigger value="requests" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">Requests</TabsTrigger>
+            <TabsTrigger value="patients" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">Patients</TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-400 text-gray-400">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
+              <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Patients</p>
-                      <p className="text-2xl font-bold">{dashboardStats.totalPatients}</p>
+                      <p className="text-sm font-medium text-gray-400">Total Patients</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{dashboardStats.totalPatients}</p>
                     </div>
-                    <Users className="h-8 w-8 text-blue-600" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg flex items-center justify-center border border-blue-500/30">
+                      <Users className="h-6 w-6 text-blue-400" />
+                    </div>
                   </div>
                   <div className="flex items-center mt-2">
-                    <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">+{dashboardStats.weeklyGrowth}% this week</span>
+                    <TrendingUp className="h-4 w-4 text-green-400 mr-1" />
+                    <span className="text-sm text-green-400">+{dashboardStats.weeklyGrowth}% this week</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
-                      <p className="text-2xl font-bold">{dashboardStats.pendingRequests}</p>
+                      <p className="text-sm font-medium text-gray-400">Pending Requests</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">{dashboardStats.pendingRequests}</p>
                     </div>
-                    <Clock className="h-8 w-8 text-yellow-600" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-yellow-500/30">
+                      <Clock className="h-6 w-6 text-yellow-400" />
+                    </div>
                   </div>
                   {dashboardStats.urgentCases > 0 && (
                     <div className="flex items-center mt-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600 mr-1" />
-                      <span className="text-sm text-red-600">{dashboardStats.urgentCases} urgent</span>
+                      <AlertTriangle className="h-4 w-4 text-red-400 mr-1" />
+                      <span className="text-sm text-red-400">{dashboardStats.urgentCases} urgent</span>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Today's Appointments</p>
-                      <p className="text-2xl font-bold">{dashboardStats.todayAppointments}</p>
+                      <p className="text-sm font-medium text-gray-400">Today's Appointments</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-green-400 to-teal-400 bg-clip-text text-transparent">{dashboardStats.todayAppointments}</p>
                     </div>
-                    <Calendar className="h-8 w-8 text-green-600" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-teal-500/20 rounded-lg flex items-center justify-center border border-green-500/30">
+                      <Calendar className="h-6 w-6 text-green-400" />
+                    </div>
                   </div>
                   <div className="flex items-center mt-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">{dashboardStats.completedToday} completed</span>
+                    <CheckCircle className="h-4 w-4 text-green-400 mr-1" />
+                    <span className="text-sm text-green-400">{dashboardStats.completedToday} completed</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">AI Screenings</p>
-                      <p className="text-2xl font-bold">24</p>
+                      <p className="text-sm font-medium text-gray-400">AI Screenings</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">24</p>
                     </div>
-                    <Activity className="h-8 w-8 text-purple-600" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                      <Activity className="h-6 w-6 text-purple-400" />
+                    </div>
                   </div>
                   <div className="flex items-center mt-2">
-                    <span className="text-sm text-muted-foreground">This week</span>
+                    <span className="text-sm text-gray-400">This week</span>
                   </div>
                 </CardContent>
               </Card>
@@ -205,25 +225,25 @@ export function DoctorDashboard() {
 
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+              <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+                <CardHeader className="border-b border-gray-700/30">
+                  <CardTitle className="text-white">Recent Activity</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="space-y-4">
                     {recentActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-start space-x-3">
+                      <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-900/50 hover:bg-gray-900/70 transition-colors">
                         <div className="flex-shrink-0 mt-1">
                           {getActivityIcon(activity.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-white">
                             {activity.patient}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-400">
                             {activity.description}
                           </p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-gray-500 mt-1">
                             {activity.time}
                           </p>
                         </div>
@@ -233,24 +253,24 @@ export function DoctorDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+              <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+                <CardHeader className="border-b border-gray-700/30">
+                  <CardTitle className="text-white">Quick Actions</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
+                <CardContent className="space-y-3 pt-6">
+                  <Button className="w-full justify-start bg-gray-700/50 hover:bg-gray-700 text-white border border-gray-600">
                     <Calendar className="h-4 w-4 mr-2" />
                     View Today's Schedule
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button className="w-full justify-start bg-gray-700/50 hover:bg-gray-700 text-white border border-gray-600">
                     <Users className="h-4 w-4 mr-2" />
                     Patient Management
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button className="w-full justify-start bg-gray-700/50 hover:bg-gray-700 text-white border border-gray-600">
                     <FileText className="h-4 w-4 mr-2" />
                     Generate Reports
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button className="w-full justify-start bg-gray-700/50 hover:bg-gray-700 text-white border border-gray-600">
                     <Activity className="h-4 w-4 mr-2" />
                     AI Analytics Dashboard
                   </Button>
@@ -264,23 +284,23 @@ export function DoctorDashboard() {
           </TabsContent>
 
           <TabsContent value="patients">
-            <Card>
-              <CardHeader>
-                <CardTitle>Patient Management</CardTitle>
+            <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-700/30">
+                <CardTitle className="text-white">Patient Management</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Patient management features coming soon...</p>
+              <CardContent className="pt-6">
+                <p className="text-gray-400">Patient management features coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics & Reports</CardTitle>
+            <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-700/30">
+                <CardTitle className="text-white">Analytics & Reports</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Analytics dashboard coming soon...</p>
+              <CardContent className="pt-6">
+                <p className="text-gray-400">Analytics dashboard coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>

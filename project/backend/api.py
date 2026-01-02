@@ -145,13 +145,14 @@ async def predict_image(
         # Run prediction with Grad-CAM
         pred_class, prob, gradcam_b64 = predict_image_bytes(IMAGE_MODEL, content)
         
-        # Convert to standard format
-        prediction = "malignant" if pred_class == 1 else "benign"
+        # Convert to standard format using CORRECT class mapping
+        # BreakHis dataset: 0=Benign, 1=Malignant
+        prediction = "benign" if pred_class == 0 else "malignant"
         confidence = float(prob * 100)  # Convert to percentage
         
         response = {
             "prediction": prediction,
-            "confidence": round(confidence, 2),
+            "confidence": round(float(confidence), 2),
             "predicted_class": int(pred_class),
             "probability": float(prob),
             "gradcam": gradcam_b64 if return_gradcam else None,
@@ -226,7 +227,6 @@ async def predict_tabular_endpoint(payload: TabularInput):
         # Convert to standard format
         # Wisconsin dataset: 0=malignant, 1=benign
         prediction = "benign" if pred_class == 1 else "malignant"
-        # confidence = float(prob * 100)  # Convert to percentage
         
         # response = {
         #     "prediction": prediction,
@@ -240,10 +240,10 @@ async def predict_tabular_endpoint(payload: TabularInput):
         # }
         response = {
                "prediction": prediction,
-               "confidence": round(confidence, 2),
+               "confidence": round(float(confidence), 2),
                "probabilities": {
-                       "malignant": round(proba[0] * 100, 2),
-                       "benign": round(proba[1] * 100, 2),
+                       "malignant": round(float(proba[0]) * 100, 2),
+                       "benign": round(float(proba[1]) * 100, 2),
                 },
                "predicted_class": int(pred_class),
                "shap": shap_b64 if payload.return_shap else None,
@@ -321,9 +321,9 @@ async def predict_multimodal_endpoint(
         
         response = {
             "prediction": prediction,
-            "confidence": round(confidence, 2),
-            "image_confidence": round(result['image_prob'] * 100, 2),
-            "tabular_confidence": round(result['tabular_prob'] * 100, 2),
+            "confidence": round(float(confidence), 2),
+            "image_confidence": round(float(result['image_prob']) * 100, 2),
+            "tabular_confidence": round(float(result['tabular_prob']) * 100, 2),
             "gradcam": result['gradcam_b64'],
             "shap": result['shap_b64'],
             "metrics": combined_metrics,

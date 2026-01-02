@@ -113,24 +113,24 @@ export function DoctorNotifications() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'urgent_request':
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
+        return <AlertTriangle className="h-4 w-4 text-red-400" />;
       case 'new_request':
-        return <User className="h-4 w-4 text-blue-600" />;
+        return <User className="h-4 w-4 text-blue-400" />;
       case 'patient_message':
-        return <Phone className="h-4 w-4 text-green-600" />;
+        return <Phone className="h-4 w-4 text-green-400" />;
       case 'appointment_reminder':
-        return <Calendar className="h-4 w-4 text-orange-600" />;
+        return <Calendar className="h-4 w-4 text-orange-400" />;
       default:
-        return <Bell className="h-4 w-4 text-gray-600" />;
+        return <Bell className="h-4 w-4 text-gray-400" />;
     }
   };
 
   const getUrgencyColor = (urgency?: string) => {
     switch (urgency) {
-      case 'high': return 'border-l-red-500 bg-red-50';
-      case 'medium': return 'border-l-yellow-500 bg-yellow-50';
-      case 'low': return 'border-l-green-500 bg-green-50';
-      default: return 'border-l-gray-500 bg-gray-50';
+      case 'high': return 'border-l-red-500 bg-red-500/10';
+      case 'medium': return 'border-l-yellow-500 bg-yellow-500/10';
+      case 'low': return 'border-l-green-500 bg-green-500/10';
+      default: return 'border-l-gray-500 bg-gray-500/10';
     }
   };
 
@@ -153,25 +153,29 @@ export function DoctorNotifications() {
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative"
+        className="relative border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-500"
       >
         <Bell className="h-4 w-4 mr-2" />
         Notifications
         {unreadCount > 0 && (
-          <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500">
+          <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500 text-white border-0 flex items-center justify-center">
             {unreadCount}
           </Badge>
         )}
       </Button>
 
       {isOpen && (
-        <Card className="absolute right-0 top-full mt-2 w-96 shadow-lg z-50">
-          <CardHeader className="pb-3">
+        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+      )}
+
+      {isOpen && (
+        <Card className="absolute right-0 top-full mt-2 w-96 max-h-[500px] shadow-2xl z-50 border border-gray-700/30 bg-gray-800/95 backdrop-blur-xl">
+          <CardHeader className="pb-3 border-b border-gray-700/30 sticky top-0 bg-gray-800/95 backdrop-blur-xl z-10">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Notifications</CardTitle>
+              <CardTitle className="text-lg text-white">Notifications</CardTitle>
               <div className="flex items-center space-x-2">
                 {urgentCount > 0 && (
-                  <Badge variant="destructive" className="text-xs">
+                  <Badge className="text-xs bg-red-500/20 text-red-400 border border-red-500/30">
                     {urgentCount} urgent
                   </Badge>
                 )}
@@ -179,6 +183,7 @@ export function DoctorNotifications() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsOpen(false)}
+                  className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -189,7 +194,7 @@ export function DoctorNotifications() {
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="text-xs self-start p-0 h-auto"
+                className="text-xs self-start p-0 h-auto text-gray-400 hover:text-white mt-2"
               >
                 Mark all as read
               </Button>
@@ -197,32 +202,35 @@ export function DoctorNotifications() {
           </CardHeader>
           
           <CardContent className="p-0">
-            <ScrollArea className="h-96">
-              <div className="space-y-1">
+            <ScrollArea className="max-h-80">
+              <div className="space-y-0">
                 {notifications.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-gray-400">
                     <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>No notifications</p>
                   </div>
                 ) : (
-                  notifications.map((notification) => (
+                  notifications.map((notification, index) => (
                     <div
                       key={notification.id}
                       className={cn(
-                        "p-4 border-l-4 cursor-pointer hover:bg-gray-50 transition-colors",
+                        "p-4 border-l-4 cursor-pointer hover:bg-gray-700/30 transition-colors relative",
                         getUrgencyColor(notification.urgency),
-                        !notification.isRead && "bg-blue-50"
+                        !notification.isRead && "bg-blue-500/5",
+                        index !== notifications.length - 1 && "border-b border-gray-700/20"
                       )}
                       onClick={() => markAsRead(notification.id)}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          {getNotificationIcon(notification.type)}
-                          <span className="font-medium text-sm">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <div className="flex-shrink-0">
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <span className="font-medium text-sm text-white truncate">
                             {notification.title}
                           </span>
                           {!notification.isRead && (
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
                           )}
                         </div>
                         <Button
@@ -232,35 +240,35 @@ export function DoctorNotifications() {
                             e.stopPropagation();
                             removeNotification(notification.id);
                           }}
-                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100 text-gray-400 hover:text-white flex-shrink-0 ml-2"
                         >
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-2">
+                      <p className="text-sm text-gray-300 mb-3 leading-relaxed">
                         {notification.message}
                       </p>
                       
                       {notification.patientName && (
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-xs">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <Avatar className="h-6 w-6 flex-shrink-0">
+                            <AvatarFallback className="text-xs bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400 border border-blue-500/30">
                               {notification.patientName.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs font-medium">
+                          <span className="text-xs font-medium text-gray-300">
                             {notification.patientName}
                           </span>
                         </div>
                       )}
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-gray-500">
                           {formatTimestamp(notification.timestamp)}
                         </span>
                         {notification.actionRequired && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs border-orange-500/30 text-orange-400 bg-orange-500/10">
                             Action Required
                           </Badge>
                         )}

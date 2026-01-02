@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { EnhancedNavbar } from '@/components/navbar/EnhancedNavbar';
 import {
   Settings,
   User,
-  ArrowLeft,
   Save,
   Eye,
   EyeOff,
@@ -21,230 +22,66 @@ import {
   Shield,
   Bell,
   Key,
-  LogOut
+  Calendar,
+  Mail,
+  Phone,
+  MapPin
 } from 'lucide-react';
-import { UserNotifications } from '@/components/user-notifications';
 
 export default function SettingsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    age: '',
-    phoneNumber: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        const data = await res.json();
-        if (data.user) {
-          setUser(data.user);
-          setFormData({
-            username: data.user.username || '',
-            email: data.user.email || '',
-            age: data.user.age?.toString() || '',
-            phoneNumber: data.user.phoneNumber || '',
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching user:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setMessage('');
-
-    try {
-      const res = await fetch('/api/auth/update-profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          username: formData.username,
-          age: formData.age ? Number(formData.age) : undefined,
-          phoneNumber: formData.phoneNumber
-        })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage('Profile updated successfully!');
-        setUser(prev => prev ? { ...prev, ...data.user } : null);
-      } else {
-        setMessage(data.error || 'Failed to update profile');
-      }
-    } catch (error) {
-      setMessage('An error occurred while updating your profile');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setMessage('');
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      setMessage('New passwords do not match');
-      setIsSaving(false);
+    if (isLoaded && !user) {
+      router.push('/sign-in');
       return;
     }
+  }, [isLoaded, user, router]);
 
-    try {
-      const res = await fetch('/api/auth/change-password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword
-        })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage('Password changed successfully!');
-        setFormData(prev => ({
-          ...prev,
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        }));
-      } else {
-        setMessage(data.error || 'Failed to change password');
-      }
-    } catch (error) {
-      setMessage('An error occurred while changing your password');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    // clear cookie
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
-  };
-
-  if (isLoading) {
+  if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading settings...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading settings...</p>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-          <p className="text-gray-600 mb-6">Please sign in to access your settings.</p>
-          <Link href="/auth">
-            <Button>Sign In</Button>
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
 
+  const userName = user.firstName || user.emailAddresses[0]?.emailAddress?.split('@')[0] || 'User';
+  const userEmail = user.emailAddresses[0]?.emailAddress || '';
+  const userRole = (user.publicMetadata?.role as string) || 'user';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Settings className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Settings</h1>
-                <p className="text-xs text-gray-500">Manage your account</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-900">{user?.username ?? 'User'}</span>
-                  <Badge variant={user?.role === 'admin' ? 'default' : 'secondary'}>
-                    {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
-                  </Badge>
-                </div>
-                <span className="text-xs text-gray-500">{user?.email ?? 'user@example.com'}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <UserNotifications />
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+      {/* Enhanced Navigation with Clerk Integration */}
+      <EnhancedNavbar />
 
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
-        {/* Header */}
-        <div className="mb-8 flex flex-col space-y-2">
-          <div className="flex items-center space-x-3">
-            <User className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-extrabold text-gray-900">
-              Account Settings
-            </h1>
-          </div>
-          <p className="text-gray-600 max-w-xl">
-            Manage your profile information and account preferences.
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent mb-4">
+            Account Settings
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Manage your profile information and account preferences
           </p>
-          <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full"></div>
         </div>
-
 
         {/* Message */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg flex items-center space-x-2 ${message.includes('successfully')
-            ? 'bg-green-50 text-green-800 border border-green-200'
-            : 'bg-red-50 text-red-800 border border-red-200'
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+            : 'bg-red-500/20 text-red-400 border border-red-500/30'
             }`}>
             {message.includes('successfully') ? (
               <CheckCircle className="h-5 w-5" />
@@ -257,215 +94,200 @@ export default function SettingsPage() {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Profile Information */}
-          <Card className="border-0 shadow-xl rounded-xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-blue-600">
-                <User className="h-5 w-5" />
+          <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+            <CardHeader className="border-b border-gray-700/30">
+              <CardTitle className="flex items-center space-x-2 text-white">
+                <User className="h-6 w-6 text-blue-400" />
                 <span>Profile Information</span>
               </CardTitle>
-              <CardDescription className="text-gray-500">
-                Update your personal details and contact information
+              <CardDescription className="text-gray-400">
+                Your account details managed by Clerk authentication
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSaveProfile} className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    placeholder="Enter your username"
-                    className="border-blue-300 focus:ring-blue-500 focus:border-blue-500"
-                  />
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg flex items-center justify-center border border-blue-500/30">
+                    <User className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-400">Display Name</Label>
+                    <p className="text-white font-semibold">{userName}</p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="bg-gray-50 border-gray-300 text-gray-500"
-                  />
-                  <p className="text-xs text-gray-400">Email cannot be changed</p>
+                <div className="flex items-center space-x-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-teal-500/20 rounded-lg flex items-center justify-center border border-green-500/30">
+                    <Mail className="h-6 w-6 text-green-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-400">Email Address</Label>
+                    <p className="text-white font-semibold">{userEmail}</p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="age">Age</Label>
-                  <Input
-                    id="age"
-                    name="age"
-                    type="number"
-                    value={formData.age}
-                    onChange={handleInputChange}
-                    placeholder="Enter your age"
-                    min="0"
-                    max="120"
-                    className="border-blue-300 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
-                  <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    placeholder="Enter your phone number"
-                    className="border-blue-300 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white shadow-lg transition-all flex items-center justify-center"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Profile'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Security Settings */}
-          <Card className="border-0 shadow-xl rounded-xl hover:shadow-2xl transition-all duration-300 mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-red-600">
-                <Shield className="h-5 w-5" />
-                <span>Security Settings</span>
-              </CardTitle>
-              <CardDescription className="text-gray-500">
-                Change your password and manage account security
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div className="space-y-1 relative">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.currentPassword}
-                    onChange={handleInputChange}
-                    placeholder="Enter current password"
-                    className="border-red-300 focus:ring-red-500 focus:border-red-500"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    value={formData.newPassword}
-                    onChange={handleInputChange}
-                    placeholder="Enter new password"
-                    className="border-red-300 focus:ring-red-500 focus:border-red-500"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    placeholder="Confirm new password"
-                    className="border-red-300 focus:ring-red-500 focus:border-red-500"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-pink-500 hover:via-purple-500 hover:to-red-500 text-white shadow-lg transition-all flex items-center justify-center"
-                >
-                  <Key className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Changing...' : 'Change Password'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-        </div>
-
-        {/* Account Information */}
-        {/* Account Information */}
-        <Card className="border-0 shadow-xl rounded-xl hover:shadow-2xl transition-all duration-300 mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-pink-600">
-              <Heart className="h-5 w-5 animate-pulse-slow" />
-              <span>Account Information</span>
-            </CardTitle>
-            <CardDescription className="text-gray-500">
-              Your account details and role information
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">Account Type</Label>
-                  <div className="mt-1">
-                    <Badge
-                      className={`px-3 py-1 text-sm font-semibold rounded-full shadow-md transition-all ${user.role === 'admin'
-                          ? 'bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 text-white'
-                          : 'bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-white'
-                        }`}
-                    >
-                      {user.role === 'admin' ? '👑 Admin' : '👤 User'}
+                <div className="flex items-center space-x-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                    <Shield className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-400">Account Role</Label>
+                    <Badge className={`mt-1 ${
+                      userRole === 'admin' 
+                        ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border border-yellow-500/30' 
+                        : userRole === 'doctor'
+                        ? 'bg-gradient-to-r from-green-500/20 to-teal-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-400 border border-blue-500/30'
+                    }`}>
+                      {userRole === 'admin' ? '👑 Admin' : userRole === 'doctor' ? '🩺 Doctor' : '👤 User'}
                     </Badge>
                   </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">Member Since</Label>
-                  <p className="text-sm text-gray-900 font-medium">
-                    {new Date(user.createdAt || Date.now()).toLocaleDateString()}
+
+                <div className="flex items-center space-x-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30">
+                    <Calendar className="h-6 w-6 text-orange-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-400">Member Since</Label>
+                    <p className="text-white font-semibold">
+                      {new Date(user.createdAt || Date.now()).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Shield className="h-5 w-5 text-blue-400" />
+                    <span className="text-blue-400 font-semibold">Clerk Authentication</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    Your profile is managed by Clerk's secure authentication system. 
+                    To update your personal information, use the user menu in the top-right corner.
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">Last Updated</Label>
-                  <p className="text-sm text-gray-900 font-medium">
-                    {new Date(user.updatedAt || Date.now()).toLocaleDateString()}
+          {/* Security & Privacy */}
+          <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl">
+            <CardHeader className="border-b border-gray-700/30">
+              <CardTitle className="flex items-center space-x-2 text-white">
+                <Shield className="h-6 w-6 text-red-400" />
+                <span>Security & Privacy</span>
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Account security and privacy settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-teal-500/20 rounded-lg flex items-center justify-center border border-green-500/30">
+                      <CheckCircle className="h-5 w-5 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Two-Factor Authentication</p>
+                      <p className="text-gray-400 text-sm">Enhanced account security</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
+                    Available via Clerk
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg flex items-center justify-center border border-blue-500/30">
+                      <Key className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Password Management</p>
+                      <p className="text-gray-400 text-sm">Change your password securely</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    Managed by Clerk
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                      <Bell className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Email Notifications</p>
+                      <p className="text-gray-400 text-sm">Manage notification preferences</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    Configurable
+                  </Badge>
+                </div>
+
+                <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <AlertCircle className="h-5 w-5 text-yellow-400" />
+                    <span className="text-yellow-400 font-semibold">Security Notice</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    For advanced security settings including password changes, two-factor authentication, 
+                    and account recovery options, please use the Clerk user profile accessible from the user menu.
                   </p>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">Account Status</Label>
-                  <div className="mt-1">
-                    <Badge className="flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 shadow-md animate-pulse-slow">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Active
-                    </Badge>
-                  </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Account Status */}
+        <Card className="border border-gray-700/30 shadow-2xl bg-gray-800/50 backdrop-blur-xl mt-8">
+          <CardHeader className="border-b border-gray-700/30">
+            <CardTitle className="flex items-center space-x-2 text-white">
+              <Heart className="h-6 w-6 text-pink-400" />
+              <span>Account Status</span>
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              Current account information and status
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-teal-500/20 rounded-lg flex items-center justify-center mx-auto mb-3 border border-green-500/30">
+                  <CheckCircle className="h-6 w-6 text-green-400" />
                 </div>
+                <p className="text-white font-semibold mb-1">Account Status</p>
+                <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
+                  Active
+                </Badge>
+              </div>
+
+              <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg flex items-center justify-center mx-auto mb-3 border border-blue-500/30">
+                  <Shield className="h-6 w-6 text-blue-400" />
+                </div>
+                <p className="text-white font-semibold mb-1">Security Level</p>
+                <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  High
+                </Badge>
+              </div>
+
+              <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-gray-700/30">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center mx-auto mb-3 border border-purple-500/30">
+                  <Heart className="h-6 w-6 text-purple-400" />
+                </div>
+                <p className="text-white font-semibold mb-1">Platform Access</p>
+                <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                  Full Access
+                </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

@@ -36,6 +36,12 @@ def predict_tabular(model, scaler, feature_dict, selected_cols, return_shap=Fals
     feature_dict: mapping from feature name to value OR an ordered list of 10 values
     selected_cols: list of feature names in the EXACT order used during training (CRITICAL!)
     return_shap: if True, compute SHAP values and return base64 visualization (requires shap)
+    
+    Returns:
+        pred_class: int (0 or 1)
+        confidence: float (confidence percentage)
+        proba: array of probabilities for each class
+        shap_b64: base64 encoded SHAP plot (if requested)
     """
     # CRITICAL: Use the provided selected_cols to ensure correct feature ordering
     if isinstance(feature_dict, list) or isinstance(feature_dict, tuple):
@@ -50,8 +56,11 @@ def predict_tabular(model, scaler, feature_dict, selected_cols, return_shap=Fals
         raise ValueError("feature_dict must be list or dict")
 
     X_s = scaler.transform(row.values)
-    proba = float(model.predict_proba(X_s)[:,1][0])
+    proba = model.predict_proba(X_s)[0]  # Get probabilities for both classes
     pred_class = int(model.predict(X_s)[0])
+    
+    # Calculate confidence as the probability of the predicted class
+    confidence = float(proba[pred_class] * 100)  # Convert to percentage
 
     shap_b64 = None
     if return_shap:
@@ -62,17 +71,18 @@ def predict_tabular(model, scaler, feature_dict, selected_cols, return_shap=Fals
             shap_values = explainer.shap_values(row)
             # generate simple plot
             import matplotlib.pyplot as plt
-            plt.figure(figsize=(6,3))
+            plt.figure(figsize=(8, 4))
             shap.plots.waterfall(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=row.iloc[0]), show=False)
             buf = io.BytesIO()
             plt.tight_layout()
-            plt.savefig(buf, format='png', bbox_inches='tight')
+            plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
             plt.close()
             buf.seek(0)
             import base64
             shap_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
             buf.close()
         except Exception as e:
+            print(f"SHAP generation failed: {e}")
             shap_b64 = None
 
-    return pred_class, proba, shap_b64
+    return pred_class, confidence, proba, shap_b64

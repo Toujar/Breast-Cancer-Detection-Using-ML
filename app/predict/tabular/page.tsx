@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EnhancedNavbar } from '@/components/navbar/EnhancedNavbar';
 import { 
   Heart, 
   ArrowLeft, 
@@ -16,7 +18,6 @@ import {
   Brain,
   Calculator
 } from 'lucide-react';
-// import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
 interface PredictionData {
@@ -33,7 +34,7 @@ interface PredictionData {
 }
 
 export default function TabularPredictionPage() {
-  // const { user } = useAuth();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [formData, setFormData] = useState<PredictionData>({
     radius_mean: 0,
@@ -49,22 +50,10 @@ export default function TabularPredictionPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [user, setUser] = useState<{ name: string } | null>(null);
 
-   useEffect(() => {
-      const fetchUser = async () => {
-        try {
-          const res = await fetch('/api/auth/me');
-          const data = await res.json();
-          setUser(data.user);
-        } catch (err) {
-          console.error("Error fetching user:", err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchUser();
-    }, []);
+  useEffect(() => {
+    // Middleware handles authentication, no need for manual redirect
+  }, []);
 
   const handleInputChange = (field: keyof PredictionData, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -115,59 +104,33 @@ export default function TabularPredictionPage() {
     { key: 'fractal_dimension_mean' as keyof PredictionData, label: 'Fractal Dimension Mean', placeholder: '0.063', description: 'Coastline approximation - 1' },
   ];
 
-  if (!user) {
+  if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="p-8 text-center">
-            <Heart className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-            <p className="text-gray-600 mb-6">Please log in to access the prediction system.</p>
-            <Link href="/auth">
-              <Button>Login</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
       </div>
     );
   }
 
+  // Middleware handles authentication redirect, so if we reach here, user should be authenticated
+  const userName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0] || 'User';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/dashboard" className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Dashboard
-              </Button>
-            </Link>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Tabular Data Analysis</h1>
-                <p className="text-xs text-gray-500">AI Prediction System</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Dr. {user.name}</p>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+      {/* Enhanced Navigation with Clerk Integration */}
+      <EnhancedNavbar />
 
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center space-x-3">
-            <Calculator className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-white mb-4 flex items-center space-x-3">
+            <Calculator className="h-8 w-8 text-blue-400" />
             <span>Patient Data Analysis</span>
           </h1>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-gray-300 leading-relaxed">
             Enter the cellular characteristics obtained from fine needle aspirate (FNA) 
             of the breast mass. Our AI model will analyze these parameters to provide 
             a prediction with confidence scores.
@@ -175,9 +138,9 @@ export default function TabularPredictionPage() {
         </div>
 
         {/* Info Alert */}
-        <Alert className="mb-8 border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="mb-8 border-blue-500/30 bg-blue-900/20 backdrop-blur-sm">
+          <Info className="h-4 w-4 text-blue-400" />
+          <AlertDescription className="text-blue-200">
             <strong>Dataset Information:</strong> This model was trained on the Wisconsin Breast Cancer Dataset 
             with 569 samples and 30 features, achieving 97.8% accuracy in distinguishing between 
             benign and malignant cases.
@@ -188,27 +151,27 @@ export default function TabularPredictionPage() {
           <div className="grid lg:grid-cols-4 gap-8">
             {/* Form */}
             <div className="lg:col-span-3">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-white">
                     <Brain className="h-5 w-5" />
                     <span>Cellular Characteristics</span>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-gray-300">
                     Input the mean values for each cellular feature measurement
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {error && (
-                    <Alert variant="destructive" className="mb-6">
-                      <AlertDescription>{error}</AlertDescription>
+                    <Alert variant="destructive" className="mb-6 bg-red-900/20 border-red-500/30">
+                      <AlertDescription className="text-red-200">{error}</AlertDescription>
                     </Alert>
                   )}
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     {inputFields.map((field) => (
                       <div key={field.key} className="space-y-2">
-                        <Label htmlFor={field.key} className="text-sm font-medium">
+                        <Label htmlFor={field.key} className="text-sm font-medium text-white">
                           {field.label}
                         </Label>
                         <Input
@@ -219,9 +182,9 @@ export default function TabularPredictionPage() {
                           value={formData[field.key] || ''}
                           onChange={(e) => handleInputChange(field.key, e.target.value)}
                           required
-                          className="h-11"
+                          className="h-11 bg-gray-900/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
                         />
-                        <p className="text-xs text-gray-500">{field.description}</p>
+                        <p className="text-xs text-gray-400">{field.description}</p>
                       </div>
                     ))}
                   </div>
@@ -231,32 +194,32 @@ export default function TabularPredictionPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Analysis Info</CardTitle>
+                  <CardTitle className="text-lg text-white">Analysis Info</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <Brain className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-blue-900">AI Model Active</p>
-                    <p className="text-xs text-blue-700">Random Forest Classifier</p>
+                  <div className="text-center p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                    <Brain className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-blue-200">AI Model Active</p>
+                    <p className="text-xs text-blue-300">Random Forest Classifier</p>
                   </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Architecture:</span>
-                      <span className="font-medium">XGBoost</span>
+                      <span className="text-gray-400">Architecture:</span>
+                      <span className="font-medium text-white">XGBoost</span>
                     </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Model Version:</span>
-                      <span className="font-medium">v2.1.0</span>
+                      <span className="text-gray-400">Model Version:</span>
+                      <span className="font-medium text-white">v2.1.0</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Training Date:</span>
-                      <span className="font-medium">Dec 2024</span>
+                      <span className="text-gray-400">Training Date:</span>
+                      <span className="font-medium text-white">Dec 2024</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Validation:</span>
-                      <span className="font-medium text-green-600">Verified</span>
+                      <span className="text-gray-400">Validation:</span>
+                      <span className="font-medium text-green-400">Verified</span>
                     </div>
                   </div>
                 </CardContent>
@@ -265,7 +228,7 @@ export default function TabularPredictionPage() {
               <Button 
                 type="submit" 
                 size="lg" 
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg text-white"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -281,7 +244,7 @@ export default function TabularPredictionPage() {
                 )}
               </Button>
 
-              <div className="text-xs text-gray-500 text-center leading-relaxed">
+              <div className="text-xs text-gray-400 text-center leading-relaxed">
                 Analysis typically takes 2-3 seconds. Results include prediction 
                 confidence scores and detailed statistical analysis.
               </div>

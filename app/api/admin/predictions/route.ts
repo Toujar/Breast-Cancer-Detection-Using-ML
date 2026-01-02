@@ -6,7 +6,7 @@ import User from '@/models/User';
 
 export async function GET() {
   try {
-    requireAdmin();
+    await requireAdmin();
     await connectDB();
     const docs = await Result.find({}, null, { sort: { createdAt: -1 }, limit: 100 }).lean();
 

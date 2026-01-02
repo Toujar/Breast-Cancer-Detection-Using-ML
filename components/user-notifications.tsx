@@ -24,7 +24,8 @@ import { cn } from '@/lib/utils';
 interface UserNotification {
   _id: string;
   doctorId: {
-    username: string;
+    firstName: string;
+    lastName: string;
     specialization: string;
     hospital: string;
     location: string;
@@ -103,15 +104,17 @@ export function UserNotifications() {
   };
 
   const getStatusMessage = (notification: UserNotification) => {
+    const doctorName = `Dr. ${notification.doctorId.firstName} ${notification.doctorId.lastName}`;
+    
     switch (notification.status) {
       case 'accepted':
-        return `Dr. ${notification.doctorId.username} accepted your appointment request.`;
+        return `${doctorName} accepted your appointment request.`;
       case 'rejected':
-        return `Dr. ${notification.doctorId.username} declined your appointment request.`;
+        return `${doctorName} declined your appointment request.`;
       case 'completed':
-        return `Your consultation with Dr. ${notification.doctorId.username} has been completed.`;
+        return `Your consultation with ${doctorName} has been completed.`;
       case 'pending':
-        return `Your appointment request to Dr. ${notification.doctorId.username} is pending review.`;
+        return `Your appointment request to ${doctorName} is pending review.`;
       default:
         return 'Appointment status updated.';
     }
@@ -137,28 +140,27 @@ export function UserNotifications() {
   return (
     <div className="relative">
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative"
+        className="relative text-gray-400 hover:text-white hover:bg-gray-800/50 backdrop-blur-sm transition-all duration-300"
       >
-        <Bell className="h-4 w-4 mr-2" />
-        Notifications
+        <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
-          <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-blue-500">
+          <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs bg-blue-500 text-white border-0">
             {unreadCount}
           </Badge>
         )}
       </Button>
 
       {isOpen && (
-        <Card className="absolute right-0 top-full mt-2 w-96 shadow-lg z-50">
-          <CardHeader className="pb-3">
+        <Card className="absolute right-0 top-full mt-2 w-96 shadow-2xl z-50 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl">
+          <CardHeader className="pb-3 border-b border-gray-700/30">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Your Appointment Requests</CardTitle>
+              <CardTitle className="text-lg text-white">Your Appointment Requests</CardTitle>
               <div className="flex items-center space-x-2">
                 {pendingCount > 0 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
                     {pendingCount} pending
                   </Badge>
                 )}
@@ -166,6 +168,7 @@ export function UserNotifications() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsOpen(false)}
+                  className="text-gray-400 hover:text-white hover:bg-gray-700/50"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -182,7 +185,7 @@ export function UserNotifications() {
                     <p className="text-sm text-gray-600">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-gray-400">
                     <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>No appointment requests found</p>
                     <p className="text-xs mt-1">Book an appointment to see updates here</p>
@@ -192,14 +195,17 @@ export function UserNotifications() {
                     <div
                       key={notification._id}
                       className={cn(
-                        "p-4 border-l-4 hover:bg-gray-50 transition-colors",
-                        getStatusColor(notification.status)
+                        "p-4 border-l-4 hover:bg-gray-700/30 transition-colors bg-gray-800/50",
+                        notification.status === 'accepted' && "border-l-green-500",
+                        notification.status === 'rejected' && "border-l-red-500",
+                        notification.status === 'completed' && "border-l-blue-500",
+                        notification.status === 'pending' && "border-l-yellow-500"
                       )}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(notification.status)}
-                          <span className="font-medium text-sm capitalize">
+                          <span className="font-medium text-sm capitalize text-white">
                             {notification.status}
                           </span>
                         </div>
@@ -216,32 +222,34 @@ export function UserNotifications() {
                         </Button>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-sm text-gray-300 mb-3">
                         {getStatusMessage(notification)}
                       </p>
                       
                       {/* Doctor Info */}
-                      <div className="flex items-center space-x-2 mb-2 p-2 bg-white rounded border">
+                      <div className="flex items-center space-x-2 mb-2 p-2 bg-gray-700/50 rounded border border-gray-600">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
-                            {notification.doctorId.username.split(' ').map(n => n[0]).join('')}
+                          <AvatarFallback className="text-xs bg-blue-600 text-white">
+                            {notification.doctorId.firstName && notification.doctorId.lastName 
+                              ? `${notification.doctorId.firstName[0]}${notification.doctorId.lastName[0]}`
+                              : 'DR'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {notification.doctorId.username}
+                          <p className="text-sm font-medium truncate text-white">
+                            Dr. {notification.doctorId.firstName} {notification.doctorId.lastName}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-400 truncate">
                             {notification.doctorId.specialization}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-400 truncate">
                             {notification.doctorId.hospital}
                           </p>
                         </div>
                       </div>
 
                       {/* Additional Info */}
-                      <div className="space-y-1 text-xs text-gray-600">
+                      <div className="space-y-1 text-xs text-gray-400">
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-3 w-3" />
                           <span>Requested: {formatTimestamp(notification.createdAt)}</span>

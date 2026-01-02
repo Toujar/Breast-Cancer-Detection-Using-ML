@@ -5,7 +5,7 @@ import Result from '@/models/Result';
 
 export async function POST(request: NextRequest) {
   try {
-    const authedUser = requireUser();
+    const authedUser = await requireUser();
     const formData = await request.formData();
     const file = formData.get('image') as File | null;
 

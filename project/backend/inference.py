@@ -52,9 +52,14 @@ def run_inference(
         model = load_image_model()
         pred_class, prob, gradcam_b64 = predict_image_bytes(model, image_bytes)
         
+        # Use CORRECT class mapping for BreakHis dataset
+        # BreakHis dataset: 0=Benign, 1=Malignant
+        prediction = "benign" if pred_class == 0 else "malignant"
+        confidence = float(prob * 100)
+        
         return {
-            "prediction": "malignant" if pred_class == 1 else "benign",
-            "confidence": round(float(prob * 100), 2),
+            "prediction": prediction,
+            "confidence": round(confidence, 2),
             "predicted_class": int(pred_class),
             "probability": float(prob),
             "gradcam": gradcam_b64 if return_gradcam else None,
@@ -67,16 +72,16 @@ def run_inference(
         
         model, scaler, selected_cols = load_tabular_model()
         # CRITICAL: Pass selected_cols for correct feature ordering
-        pred_class, prob, shap_b64 = predict_tabular(
+        pred_class, confidence, proba, shap_b64 = predict_tabular(
             model, scaler, tabular_data, selected_cols, return_shap=return_shap
         )
         
         return {
             # Wisconsin dataset: 0=malignant, 1=benign
             "prediction": "benign" if pred_class == 1 else "malignant",
-            "confidence": round(float(prob * 100), 2),
+            "confidence": round(confidence, 2),
             "predicted_class": int(pred_class),
-            "probability": float(prob),
+            "probability": float(confidence / 100),
             "shap": shap_b64 if return_shap else None,
             "type": "tabular"
         }

@@ -5,7 +5,7 @@ import { requireUser } from "../../_utils/auth-utils";
 
 export async function GET() {
   try {
-    const authedUser = requireUser();
+    const authedUser = await requireUser();
     await connectDB();
 
     const userQuery = { userId: authedUser.id || authedUser._id };
@@ -17,10 +17,10 @@ export async function GET() {
 
     // Calculate average metrics from user's actual predictions
     let avgMetrics = {
-      accuracy: 97.8,
-      precision: 96.4,
-      recall: 98.1,
-      f1Score: 97.2
+      accuracy: 94.6, // Real model accuracy: 94.62%
+      precision: 95.0, // Weighted average precision: 95%
+      recall: 95.0,    // Weighted average recall: 95%
+      f1Score: 95.0    // Weighted average F1-score: 95%
     };
 
     if (allUserResults.length > 0) {

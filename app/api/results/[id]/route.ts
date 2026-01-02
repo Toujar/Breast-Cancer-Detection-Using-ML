@@ -12,7 +12,7 @@ export async function GET(
   try {
     const id = params.id;
     const token = request.nextUrl.searchParams.get('token');
-    const authedUser = token ? null : requireUser();
+    const authedUser = token ? null : await requireUser();
 
     await connectDB();
     const doc = await Result.findOne({ predictionId: id }).lean();

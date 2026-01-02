@@ -5,7 +5,7 @@ import { requireUser } from '../../_utils/auth-utils';
 
 export async function GET() {
   try {
-    const authedUser = requireUser();
+    const authedUser = await requireUser();
     await connectDB();
     const query = authedUser.role === 'admin' ? {} : { userId: authedUser.id || authedUser._id };
     const docs = await Result.find(query, null, { sort: { createdAt: -1 }, limit: 50 }).lean();

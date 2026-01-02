@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const authedUser = requireUser();
+    const authedUser = await requireUser();
     const id = params.id;
 
     await connectDB();

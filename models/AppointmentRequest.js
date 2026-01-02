@@ -5,11 +5,16 @@ const AppointmentRequestSchema = new mongoose.Schema(
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: true, // Now required since we always create a patient record
+    },
+    patientClerkId: {
+      type: String,
+      required: false, // Store Clerk ID as backup
+      trim: true,
     },
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Doctor", // Reference Doctor model instead of User
       required: true,
     },
     patientName: {
@@ -101,4 +106,9 @@ const AppointmentRequestSchema = new mongoose.Schema(
 AppointmentRequestSchema.index({ doctorId: 1, status: 1 });
 AppointmentRequestSchema.index({ patientId: 1, createdAt: -1 });
 
-export default mongoose.models.AppointmentRequest || mongoose.model("AppointmentRequest", AppointmentRequestSchema);
+// Clear any existing model to force re-registration
+if (mongoose.models.AppointmentRequest) {
+  delete mongoose.models.AppointmentRequest;
+}
+
+export default mongoose.model("AppointmentRequest", AppointmentRequestSchema);

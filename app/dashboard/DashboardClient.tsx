@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser, SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { UserRoleBadge } from '@/components/auth/user-role-badge';
+import { EnhancedNavbar } from '@/components/navbar/EnhancedNavbar';
 import {
   Brain,
   FileText,
@@ -23,7 +26,6 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { UserNotifications } from '@/components/user-notifications';
-// import { useAuth } from '@/lib/auth-context';
 
 interface DashboardStats {
   totalPredictions: number;
@@ -48,40 +50,30 @@ interface RecentPrediction {
 }
 
 export default function DashboardClient() {
-  // const { user, logout } = useAuth();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [user, setUser] = useState<{ email: string; username: string; role: string } | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalPredictions: 0,
     recentPredictions: 0,
-    accuracy: 97.8,
+    accuracy: 94.6, // Real model accuracy from test results
     lastActive: 'Today'
   });
   const [modelMetrics, setModelMetrics] = useState<ModelMetrics>({
-    accuracy: 97.8,
-    precision: 96.4,
-    recall: 98.1,
-    f1Score: 97.2
+    accuracy: 94.6, // Real accuracy: 94.62%
+    precision: 95.0, // Weighted average precision: 95%
+    recall: 95.0,    // Weighted average recall: 95%
+    f1Score: 95.0    // Weighted average F1-score: 95%
   });
   const [recentPredictions, setRecentPredictions] = useState<RecentPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user from /api/auth/me
   useEffect(() => {
-    const fetchUser = async () => {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      setUser(data.user);
-      setIsLoading(false);
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
+    if (isLoaded && user) {
       fetchDashboardData();
+    } else if (isLoaded && !user) {
+      router.push('/sign-in');
     }
-  }, [user]);
+  }, [isLoaded, user, router]);
 
   const fetchDashboardData = async () => {
     try {
@@ -111,116 +103,134 @@ export default function DashboardClient() {
   };
 
   
-  const handleLogout = async () => {
-    // clear cookie
-    await fetch('/api/auth/logout', { method: 'POST' });
+  const handleLogout = () => {
+    // Clerk handles logout automatically with SignOutButton
     router.push('/');
   };
 
-  if (isLoading) {
+  if (!isLoaded || isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-600">Loading session...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-white mb-2">Authentication Required</h2>
+          <p className="text-gray-400 mb-4">Please sign in to access your dashboard.</p>
+          <Button onClick={() => router.push('/sign-in')} className="bg-blue-600 hover:bg-blue-700">
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const userRole = (user.publicMetadata?.role as string) || 'user';
+  const userName = user.firstName || user.emailAddresses[0]?.emailAddress?.split('@')[0] || 'User';
+  const userEmail = user.emailAddresses[0]?.emailAddress || '';
+
  
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation - iCloud Style */}
-      <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Cancer Detection</h1>
-                <p className="text-xs text-gray-500">Medical Dashboard</p>
-              </div>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-900">{user?.username ?? 'User'}</span>
-                  <Badge className={user?.role === 'admin' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}>
-                    {user?.role === 'admin' ? 'Admin' : 'User'}
-                  </Badge>
-                </div>
-                <span className="text-xs text-gray-500">{user?.email ?? 'user@example.com'}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <UserNotifications />
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Floating Orbs */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-pink-500/8 to-rose-500/8 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute bottom-40 right-1/3 w-64 h-64 bg-gradient-to-r from-amber-500/8 to-orange-500/8 rounded-full blur-3xl animate-pulse delay-500"></div>
+        
+        {/* Geometric Patterns */}
+        <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="w-2 h-2 bg-blue-400/20 rounded-full animate-ping"></div>
         </div>
-      </nav>
+        <div className="absolute top-3/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="w-1 h-1 bg-purple-400/25 rounded-full animate-ping delay-700"></div>
+        </div>
+        <div className="absolute top-1/2 right-1/4 transform translate-x-1/2 -translate-y-1/2">
+          <div className="w-3 h-3 bg-pink-400/15 rounded-full animate-ping delay-1500"></div>
+        </div>
+        
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-gray-800/5 to-transparent"></div>
+        <div 
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(156, 163, 175, 0.2) 1px, transparent 0)`,
+            backgroundSize: '50px 50px'
+          }}
+        ></div>
+      </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Header - iCloud Style */}
+      {/* Enhanced Navigation with Clerk Integration */}
+      <EnhancedNavbar />
+
+      <div className="max-w-7xl mx-auto p-6 relative z-10">
+        {/* Header - Enhanced with Gradient Text */}
         <div className="mb-10">
-          <h1 className="text-4xl font-semibold text-gray-900 mb-2 tracking-tight">
-            Welcome back, {user?.username ?? 'User'}
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent mb-2 tracking-tight">
+            Welcome back, {userName}
           </h1>
-          <p className="text-gray-600 text-lg font-light">
+          <p className="text-gray-400 text-lg font-light">
             Monitor your AI-assisted breast cancer detection activities and insights.
           </p>
         </div>
 
-        {/* Quick Stats - iCloud Style */}
+        {/* Quick Stats - Enhanced Glass Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
+          <Card className="border border-gray-700/30 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 rounded-2xl bg-black/40 backdrop-blur-xl hover:bg-black/50 transform hover:-translate-y-1">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600 font-light mb-1">Total Predictions</p>
-                <p className="text-3xl font-semibold text-gray-900">{stats.totalPredictions}</p>
+                <p className="text-sm text-gray-400 font-light mb-1">Total Predictions</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{stats.totalPredictions}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Brain className="h-6 w-6 text-blue-500" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-500/20">
+                <Brain className="h-6 w-6 text-blue-400" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
+          <Card className="border border-gray-700/30 hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-500 rounded-2xl bg-black/40 backdrop-blur-xl hover:bg-black/50 transform hover:-translate-y-1">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600 font-light mb-1">This Week</p>
-                <p className="text-3xl font-semibold text-gray-900">{stats.recentPredictions}</p>
+                <p className="text-sm text-gray-400 font-light mb-1">This Week</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">{stats.recentPredictions}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-500" />
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20 border border-green-500/20">
+                <TrendingUp className="h-6 w-6 text-green-400" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
+          <Card className="border border-gray-700/30 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 rounded-2xl bg-black/40 backdrop-blur-xl hover:bg-black/50 transform hover:-translate-y-1">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600 font-light mb-1">Model Accuracy</p>
-                <p className="text-3xl font-semibold text-gray-900">{stats.accuracy}%</p>
+                <p className="text-sm text-gray-400 font-light mb-1">Model Accuracy</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{stats.accuracy}%</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-purple-500" />
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 border border-purple-500/20">
+                <BarChart3 className="h-6 w-6 text-purple-400" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white bg-gradient-to-br from-indigo-50 to-indigo-100">
+          <Card className="border border-gray-700/30 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 rounded-2xl bg-black/40 backdrop-blur-xl hover:bg-black/50 transform hover:-translate-y-1">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-600 font-light mb-1">Last Active</p>
-                <p className="text-3xl font-semibold text-gray-900">{stats.lastActive}</p>
+                <p className="text-sm text-gray-400 font-light mb-1">Last Active</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">{stats.lastActive}</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Clock className="h-6 w-6 text-orange-500" />
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 border border-orange-500/20">
+                <Clock className="h-6 w-6 text-orange-400" />
               </div>
             </CardContent>
           </Card>
@@ -232,26 +242,26 @@ export default function DashboardClient() {
           {/* Quick Actions + Recent Predictions */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Actions */}
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100">
-              <CardHeader>
+            <Card className="border border-gray-700/30 shadow-2xl hover:shadow-3xl transition-all duration-500 rounded-2xl bg-black/50 backdrop-blur-xl hover:bg-black/60 transform hover:-translate-y-2">
+              <CardHeader className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-t-2xl border-b border-gray-600/30">
                 <CardTitle className="flex items-center space-x-2">
-                  <Activity className="h-5 w-5 text-indigo-600" />
-                  <span className="text-lg font-semibold text-gray-800">Quick Actions</span>
+                  <Activity className="h-5 w-5 text-indigo-400" />
+                  <span className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Quick Actions</span>
                 </CardTitle>
-                <CardDescription className="text-gray-500">
+                <CardDescription className="text-gray-400">
                   Start a new analysis or view your previous results
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
+              <CardContent className="p-6">
+                <div className="grid md:grid-cols-2 gap-6">
                   <Link href="/predict/tabular">
-                    <Card className="cursor-pointer transform hover:scale-105 transition-transform duration-300 border-2 border-transparent hover:border-indigo-300 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-xl shadow-sm">
+                    <Card className="cursor-pointer transform hover:scale-105 transition-all duration-300 border-2 border-gray-700/30 hover:border-indigo-500/50 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-xl shadow-lg hover:shadow-xl backdrop-blur-sm">
                       <CardContent className="p-6 text-center">
-                        <div className="w-14 h-14 bg-indigo-200 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-md">
-                          <FileText className="h-6 w-6 text-indigo-700" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-500/20 to-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 border border-indigo-500/20">
+                          <FileText className="h-8 w-8 text-indigo-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-2">Data Analysis</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3 className="font-bold text-white mb-2 text-lg">Data Analysis</h3>
+                        <p className="text-sm text-gray-400">
                           Input patient parameters for AI prediction
                         </p>
                       </CardContent>
@@ -259,14 +269,14 @@ export default function DashboardClient() {
                   </Link>
 
                   <Link href="/predict/image">
-                    <Card className="cursor-pointer transform hover:scale-105 transition-transform duration-300 border-2 border-transparent hover:border-green-300 bg-gradient-to-br from-green-100 to-green-50 rounded-xl shadow-sm">
+                    <Card className="cursor-pointer transform hover:scale-105 transition-all duration-300 border-2 border-gray-700/30 hover:border-green-500/50 bg-gradient-to-br from-gray-800/50 to-gray-700/50 rounded-xl shadow-lg hover:shadow-xl backdrop-blur-sm">
                       <CardContent className="p-6 text-center">
-                        <div className="w-14 h-14 bg-green-200 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-md">
-                          <Upload className="h-6 w-6 text-green-700" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transition-all duration-300 border border-green-500/20">
+                          <Upload className="h-8 w-8 text-green-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-2">Image Analysis</h3>
-                        <p className="text-sm text-gray-600">
-                          Upload mammogram for AI detection
+                        <h3 className="font-bold text-white mb-2 text-lg">Image Analysis</h3>
+                        <p className="text-sm text-gray-400">
+                          Upload ultrasound for AI detection
                         </p>
                       </CardContent>
                     </Card>
@@ -276,69 +286,68 @@ export default function DashboardClient() {
             </Card>
 
             {/* Recent Predictions */}
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50">
-              <CardHeader>
+            <Card className="border border-gray-700/30 shadow-2xl hover:shadow-3xl transition-all duration-500 rounded-2xl bg-black/50 backdrop-blur-xl hover:bg-black/60">
+              <CardHeader className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-t-2xl border-b border-gray-600/30">
                 <CardTitle className="flex items-center space-x-2">
-                  <History className="h-5 w-5 text-pink-500" />
-                  <span className="text-lg font-semibold text-gray-800">Recent Predictions</span>
+                  <History className="h-5 w-5 text-pink-400" />
+                  <span className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Recent Predictions</span>
                 </CardTitle>
-                <CardDescription className="text-sm text-gray-500">
+                <CardDescription className="text-sm text-gray-400">
                   Your latest AI analysis results
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 {recentPredictions.length > 0 ? (
                   <div className="space-y-4">
                     {recentPredictions.map((prediction) => (
-                      <div
-                        key={prediction.id}
-                        className={`flex items-center justify-between p-4 rounded-xl shadow-sm transition-all duration-300
-                bg-gradient-to-r ${prediction.result === 'benign' ? 'from-green-50 to-green-100 hover:from-green-100 hover:to-green-200' : 'from-red-50 to-red-100 hover:from-red-100 hover:to-red-200'}`}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center 
-                  ${prediction.result === 'benign' ? 'bg-green-200 ring-green-300' : 'bg-red-200 ring-red-300'} ring-2 transition-all duration-300`}
-                          >
-                            {prediction.type === 'tabular' ? (
-                              <FileText
-                                className={`h-6 w-6 ${prediction.result === 'benign' ? 'text-green-700' : 'text-red-700'}`}
-                              />
-                            ) : (
-                              <Upload
-                                className={`h-6 w-6 ${prediction.result === 'benign' ? 'text-green-700' : 'text-red-700'}`}
-                              />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 capitalize">
-                              {prediction.result} ({prediction.confidence}% confidence)
-                            </p>
-                            <p className="text-sm text-gray-500">{prediction.date}</p>
-                          </div>
-                        </div>
-                        <Badge
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${prediction.result === 'benign' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                      <Link key={prediction.id} href={`/results/${prediction.id}`}>
+                        <div
+                          className={`flex items-center justify-between p-4 rounded-xl shadow-lg transition-all duration-300 backdrop-blur-sm border border-gray-700/30 hover:shadow-xl transform hover:-translate-y-1 cursor-pointer
+                ${prediction.result === 'benign' ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 hover:from-green-800/40 hover:to-emerald-800/40' : 'bg-gradient-to-r from-red-900/30 to-rose-900/30 hover:from-red-800/40 hover:to-rose-800/40'}`}
                         >
-                          {prediction.type}
-                        </Badge>
-                      </div>
+                          <div className="flex items-center space-x-4">
+                            <div
+                              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 border
+                    ${prediction.result === 'benign' ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 shadow-green-500/25 border-green-500/30' : 'bg-gradient-to-br from-red-500/20 to-rose-500/20 shadow-red-500/25 border-red-500/30'}`}
+                            >
+                              {prediction.type === 'tabular' ? (
+                                <FileText className="h-6 w-6 text-white" />
+                              ) : (
+                                <Upload className="h-6 w-6 text-white" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-white capitalize">
+                                {prediction.result} ({prediction.confidence}% confidence)
+                              </p>
+                              <p className="text-sm text-gray-400">{prediction.date}</p>
+                            </div>
+                          </div>
+                          <Badge
+                            className={`px-3 py-1 rounded-full text-sm font-medium shadow-md ${prediction.result === 'benign' ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border-green-600/30' : 'bg-gradient-to-r from-red-900/50 to-rose-900/50 text-red-300 border-red-600/30'}`}
+                          >
+                            {prediction.type}
+                          </Badge>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-10">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Be the first to predict!</h3>
-                    <p className="text-gray-600 mb-6">Kickstart your journey with a quick analysis below.</p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 bg-gradient-to-br from-gray-700/50 to-gray-600/50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg border border-gray-600/30">
+                      <FileText className="h-10 w-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">Be the first to predict!</h3>
+                    <p className="text-gray-400 mb-6">Kickstart your journey with a quick analysis below.</p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <Link href="/predict/tabular">
-                        <Button className="bg-indigo-500 text-white hover:bg-indigo-600 transition rounded-lg px-5 py-2">
+                        <Button className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white hover:from-indigo-600 hover:to-blue-700 transition-all duration-300 rounded-xl px-6 py-3 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transform hover:-translate-y-1">
                           <FileText className="h-4 w-4 mr-2" />
                           Start Data Analysis
                         </Button>
                       </Link>
                       <Link href="/predict/image">
-                        <Button className="bg-green-500 text-white hover:bg-green-600 transition rounded-lg px-5 py-2">
+                        <Button className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 rounded-xl px-6 py-3 shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transform hover:-translate-y-1">
                           <Upload className="h-4 w-4 mr-2" />
                           Start Image Analysis
                         </Button>
@@ -356,11 +365,11 @@ export default function DashboardClient() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Model Performance */}
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-800">Model Performance</CardTitle>
+            <Card className="border border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-black/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-600/30">
+                <CardTitle className="text-lg font-semibold text-white">Model Performance</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent className="space-y-5 p-6">
                 {[
                   { label: 'Accuracy', value: modelMetrics.accuracy, gradient: 'from-blue-400 to-blue-600' },
                   { label: 'Precision', value: modelMetrics.precision, gradient: 'from-purple-400 to-purple-600' },
@@ -368,11 +377,11 @@ export default function DashboardClient() {
                   { label: 'F1-Score', value: modelMetrics.f1Score, gradient: 'from-pink-400 to-pink-600' },
                 ].map((metric) => (
                   <div key={metric.label} className="space-y-1">
-                    <div className="flex justify-between text-sm font-medium text-gray-700">
+                    <div className="flex justify-between text-sm font-medium text-gray-300">
                       <span>{metric.label}</span>
                       <span>{metric.value}%</span>
                     </div>
-                    <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-full h-3 bg-gray-700/50 rounded-full overflow-hidden">
                       <div
                         className={`h-3 rounded-full bg-gradient-to-r ${metric.gradient} transition-all duration-500`}
                         style={{ width: `${metric.value}%` }}
@@ -384,36 +393,36 @@ export default function DashboardClient() {
             </Card>
 
             {/* Quick Access */}
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-800">Quick Access</CardTitle>
+            <Card className="border border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-black/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-600/30">
+                <CardTitle className="text-lg font-semibold text-white">Quick Access</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-6">
                 <Link href="/history">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start rounded-lg px-4 py-2 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-indigo-200 transition-all duration-300"
+                    className="w-full justify-start rounded-lg px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300"
                   >
-                    <History className="h-5 w-5 mr-3 text-indigo-600" />
+                    <History className="h-5 w-5 mr-3 text-indigo-400" />
                     View History
                   </Button>
                 </Link>
                 <Link href="/analytics">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start rounded-lg px-4 py-2 hover:bg-gradient-to-r hover:from-green-100 hover:to-green-200 transition-all duration-300"
+                    className="w-full justify-start rounded-lg px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300"
                   >
-                    <BarChart3 className="h-5 w-5 mr-3 text-green-600" />
+                    <BarChart3 className="h-5 w-5 mr-3 text-green-400" />
                     Analytics
                   </Button>
                 </Link>
-                {user && (
-                  <Link href="/admin">
+                {user && userRole === 'admin' && (
+                  <Link href="/dashboard/admin">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start rounded-lg px-4 py-2 hover:bg-gradient-to-r hover:from-pink-100 hover:to-pink-200 transition-all duration-300"
+                      className="w-full justify-start rounded-lg px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300"
                     >
-                      <Users className="h-5 w-5 mr-3 text-pink-600" />
+                      <Users className="h-5 w-5 mr-3 text-pink-400" />
                       Admin Panel
                     </Button>
                   </Link>
@@ -421,35 +430,33 @@ export default function DashboardClient() {
                 <Link href="/settings">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start rounded-lg px-4 py-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 transition-all duration-300"
+                    className="w-full justify-start rounded-lg px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300"
                   >
-                    <Settings className="h-5 w-5 mr-3 text-gray-600" />
+                    <Settings className="h-5 w-5 mr-3 text-gray-400" />
                     Settings
                   </Button>
                 </Link>
               </CardContent>
             </Card>
 
-
-
             {/* System Status */}
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-800">System Status</CardTitle>
+            <Card className="border border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl bg-black/50 backdrop-blur-xl">
+              <CardHeader className="border-b border-gray-600/30">
+                <CardTitle className="text-lg font-semibold text-white">System Status</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-6">
                 {[
-                  { label: 'AI Model', status: 'Active', iconColor: 'text-green-600', bgColor: 'bg-green-100', gradient: 'bg-gradient-to-r from-green-100 to-green-200' },
-                  { label: 'API Status', status: 'Online', iconColor: 'text-blue-600', bgColor: 'bg-blue-100', gradient: 'bg-gradient-to-r from-blue-100 to-blue-200' },
-                  { label: 'Database', status: 'Connected', iconColor: 'text-purple-600', bgColor: 'bg-purple-100', gradient: 'bg-gradient-to-r from-purple-100 to-purple-200' },
+                  { label: 'AI Model', status: 'Active', iconColor: 'text-green-400', bgColor: 'bg-green-900/30', gradient: 'bg-gradient-to-r from-green-900/30 to-green-800/30' },
+                  { label: 'API Status', status: 'Online', iconColor: 'text-blue-400', bgColor: 'bg-blue-900/30', gradient: 'bg-gradient-to-r from-blue-900/30 to-blue-800/30' },
+                  { label: 'Database', status: 'Connected', iconColor: 'text-purple-400', bgColor: 'bg-purple-900/30', gradient: 'bg-gradient-to-r from-purple-900/30 to-purple-800/30' },
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className={`flex items-center justify-between p-3 rounded-xl ${item.gradient} shadow-sm hover:scale-105 transition-transform duration-300`}
+                    className={`flex items-center justify-between p-3 rounded-xl ${item.gradient} shadow-sm hover:scale-105 transition-transform duration-300 border border-gray-600/20`}
                   >
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                    <span className="text-sm font-medium text-gray-300">{item.label}</span>
                     <Badge
-                      className={`flex items-center px-3 py-1 rounded-full font-medium text-sm ${item.bgColor} ${item.iconColor} shadow-md`}
+                      className={`flex items-center px-3 py-1 rounded-full font-medium text-sm ${item.bgColor} ${item.iconColor} shadow-md border border-gray-600/30`}
                     >
                       <CheckCircle className={`h-4 w-4 mr-1 ${item.iconColor}`} />
                       {item.status}
@@ -458,8 +465,6 @@ export default function DashboardClient() {
                 ))}
               </CardContent>
             </Card>
-
-
           </div>
         </div>
 

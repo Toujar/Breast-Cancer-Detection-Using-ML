@@ -5,7 +5,7 @@ import Result from "@/models/Result";
 
 export async function POST(req: Request) {
   try {
-    const authedUser = requireUser();
+    const authedUser = await requireUser();
     const body = await req.json();
     
     // Use NEW backend API

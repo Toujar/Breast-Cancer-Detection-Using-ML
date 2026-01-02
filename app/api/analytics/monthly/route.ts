@@ -5,7 +5,7 @@ import { requireUser } from "../../_utils/auth-utils";
 
 export async function GET() {
   try {
-    const authedUser = requireUser();
+    const authedUser = await requireUser();
     await connectDB();
 
     const userQuery = { userId: authedUser.id || authedUser._id };

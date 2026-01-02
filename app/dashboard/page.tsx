@@ -1,23 +1,14 @@
-// app/dashboard/page.tsx
-import { cookies } from 'next/headers';
+import { getCurrentUser, getDashboardUrl } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import jwt from 'jsonwebtoken';
-import DashboardClient from './DashboardClient';
 
-export default function DashboardPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get('token')?.value;
-
-  if (!token) redirect('/auth');
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    if (typeof decoded === 'object' && decoded?.role === 'admin') {
-      redirect('/admin');
-    }
-  } catch (err) {
-    redirect('/auth');
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    redirect('/sign-in');
   }
 
-  return <DashboardClient />;
+  // Redirect to role-specific dashboard
+  const dashboardUrl = getDashboardUrl(user.role);
+  redirect(dashboardUrl);
 }
