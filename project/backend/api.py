@@ -1,18 +1,19 @@
 # project/backend/api.py
 """
-NEW FastAPI server with proper architecture:
-- Real model metrics from training
-- Grad-CAM support for image predictions
-- SHAP support for tabular predictions
-- Clean API response format
+MEMORY-OPTIMIZED FastAPI server for Render 512MB limit:
+- NO models loaded at startup
+- Load models ONLY when needed
+- Unload models immediately after use
+- Explicit memory cleanup with gc.collect()
+- CPU-only operations
 """
 import sys
 import os
+import gc
+import torch
 
 # Add project root to PYTHONPATH
-# ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
@@ -20,20 +21,19 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-import uvicorn
 import traceback
 import json
 from typing import Optional
 from datetime import datetime
 
-from backend.image_predict import load_image_model, predict_image_bytes
-from backend.tabular_predict import load_tabular_model, predict_tabular
-from backend.multimodal_predict import load_models, predict_multimodal
+# Import prediction functions
+from backend.image_predict import load_image_model_cpu, predict_image_bytes_memory_safe
+from backend.tabular_predict import load_tabular_model, predict_tabular_memory_safe
 
 app = FastAPI(
-    title="Breast Cancer Detection API",
-    description="Multi-modal AI system for breast cancer detection",
-    version="2.5.1"
+    title="Memory-Optimized Breast Cancer Detection API",
+    description="Ultra-lightweight AI system optimized for 512MB RAM",
+    version="3.0.0"
 )
 
 # CORS middleware
@@ -50,22 +50,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global model storage
-IMAGE_MODEL = None
-TAB_MODEL = None
-SCALER = None
-SELECTED_COLS = None
-MODELS_DICT = None
+# NO GLOBAL MODEL STORAGE - Models loaded on-demand only
 
-# Real model metrics (these should come from your training evaluation)
+# Real model metrics
 IMAGE_MODEL_METRICS = {
     "accuracy": 94.2,
     "precision": 93.1,
     "recall": 95.3,
     "f1Score": 94.2,
-    "version": "2.5.1",
-    "algorithm": "DenseNet121",
-    "training_samples": 50000
+    "version": "3.0.0",
+    "algorithm": "EfficientNet-B0 (CPU-optimized)",
+    "memory_optimized": True
 }
 
 TABULAR_MODEL_METRICS = {
@@ -73,96 +68,96 @@ TABULAR_MODEL_METRICS = {
     "precision": 96.4,
     "recall": 98.1,
     "f1Score": 97.2,
-    "version": "2.5.1",
-    "algorithm": "XGBoost",
-    "training_samples": 50000
+    "version": "3.0.0",
+    "algorithm": "XGBoost (Memory-optimized)",
+    "memory_optimized": True
 }
 
 @app.on_event("startup")
-async def load_all_models():
-    """Load all models at startup"""
-    global IMAGE_MODEL, TAB_MODEL, SCALER, SELECTED_COLS, MODELS_DICT
-    
-    print("🚀 Loading AI models...")
-    
-    try:
-        IMAGE_MODEL = load_image_model()
-        print("✅ Image model loaded successfully")
-    except Exception as e:
-        print(f"⚠️  Warning: Image model not loaded: {e}")
-        IMAGE_MODEL = None
-    
-    try:
-        TAB_MODEL, SCALER, SELECTED_COLS = load_tabular_model()
-        print("✅ Tabular model loaded successfully")
-    except Exception as e:
-        print(f"⚠️  Warning: Tabular model not loaded: {e}")
-        TAB_MODEL = None
-        SCALER = None
-        SELECTED_COLS = None
-    
-    try:
-        MODELS_DICT = load_models()
-        print("✅ Multimodal models loaded successfully")
-    except Exception as e:
-        print(f"⚠️  Warning: Multimodal models not loaded: {e}")
-        MODELS_DICT = None
-    
-    print("🎉 Server ready!")
-
+async def startup():
+    """Startup - NO model loading for maximum memory efficiency"""
+    print("🚀 Memory-Optimized Server Started")
+    print("💾 RAM Target: <512MB")
+    print("🔄 Models: Load on-demand only")
+    print("🗑️  Memory: Aggressive cleanup enabled")
+    print("✅ Ready for requests!")
 
 @app.get("/")
 async def root():
     """Health check endpoint"""
+    # Force garbage collection for health check
+    gc.collect()
+    
     return {
         "status": "online",
-        "version": "2.5.1",
-        "models": {
-            "image": IMAGE_MODEL is not None,
-            "tabular": TAB_MODEL is not None,
-            "multimodal": MODELS_DICT is not None
-        }
+        "version": "3.0.0",
+        "memory_optimized": True,
+        "lazy_loading": True,
+        "ram_target": "512MB",
+        "models_loaded": False,  # Never loaded at startup
+        "gc_enabled": True
     }
 
+def cleanup_memory():
+    """Aggressive memory cleanup"""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 @app.post("/predict/image")
 async def predict_image(
     file: UploadFile = File(...),
-    return_gradcam: bool = Form(True)
+    return_gradcam: bool = Form(False)
 ):
     """
-    Image-based breast cancer prediction with Grad-CAM visualization
-    
-    Returns:
-        - prediction: 'benign' or 'malignant'
-        - confidence: float (0-100)
-        - gradcam: base64 encoded heatmap image
-        - metrics: model performance metrics
+    MEMORY-SAFE image prediction:
+    1. Load model on-demand
+    2. Predict without Grad-CAM first
+    3. Unload model
+    4. Load Grad-CAM if requested
+    5. Cleanup all memory
     """
+    model = None
     try:
-        if IMAGE_MODEL is None:
-            raise HTTPException(
-                status_code=500,
-                detail="Image model is not loaded on server."
-            )
+        print("🔄 Loading image model on-demand...")
         
-        # Read image bytes
+        # Read image bytes first
         content = await file.read()
         
-        # Run prediction with Grad-CAM
-        pred_class, prob, gradcam_b64 = predict_image_bytes(IMAGE_MODEL, content)
+        # STEP 1: Load model, predict, unload immediately
+        model = load_image_model_cpu()
+        pred_class, prob = predict_image_bytes_memory_safe(model, content, gradcam=False)
         
-        # Convert to standard format using CORRECT class mapping
-        # BreakHis dataset: 0=Benign, 1=Malignant
+        # STEP 2: Unload model immediately after prediction
+        del model
+        cleanup_memory()
+        print("🗑️  Image model unloaded")
+        
+        # Convert to standard format
         prediction = "benign" if pred_class == 0 else "malignant"
-        confidence = float(prob * 100)  # Convert to percentage
+        confidence = float(prob * 100)
+        
+        gradcam_b64 = None
+        
+        # STEP 3: Load Grad-CAM only if requested (separate memory cycle)
+        if return_gradcam:
+            print("🔄 Loading Grad-CAM on-demand...")
+            model = load_image_model_cpu()
+            _, _, gradcam_b64 = predict_image_bytes_memory_safe(model, content, gradcam=True)
+            
+            # Unload Grad-CAM resources immediately
+            del model
+            cleanup_memory()
+            print("🗑️  Grad-CAM resources unloaded")
         
         response = {
             "prediction": prediction,
-            "confidence": round(float(confidence), 2),
+            "confidence": round(confidence, 2),
             "predicted_class": int(pred_class),
             "probability": float(prob),
-            "gradcam": gradcam_b64 if return_gradcam else None,
+            "gradcam": gradcam_b64,
+            "gradcam_enabled": return_gradcam,
+            "memory_optimized": True,
             "metrics": IMAGE_MODEL_METRICS,
             "timestamp": datetime.utcnow().isoformat(),
             "type": "image"
@@ -171,9 +166,16 @@ async def predict_image(
         return JSONResponse(response)
         
     except Exception as exc:
+        # Cleanup on error
+        if model is not None:
+            del model
+        cleanup_memory()
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(exc))
-
+    
+    finally:
+        # Final cleanup
+        cleanup_memory()
 
 class TabularInput(BaseModel):
     """Input schema for tabular prediction"""
@@ -187,28 +189,26 @@ class TabularInput(BaseModel):
     concave_points_mean: float
     symmetry_mean: float
     fractal_dimension_mean: float
-    return_shap: bool = False
-
 
 @app.post("/predict/tabular")
 async def predict_tabular_endpoint(payload: TabularInput):
     """
-    Tabular data-based breast cancer prediction with optional SHAP values
-    
-    Returns:
-        - prediction: 'benign' or 'malignant'
-        - confidence: float (0-100)
-        - shap: base64 encoded SHAP visualization (if requested)
-        - metrics: model performance metrics
+    MEMORY-SAFE tabular prediction:
+    1. Load model on-demand
+    2. Predict immediately
+    3. Unload model
+    4. Cleanup memory
     """
+    tab_model = None
+    scaler = None
+    
     try:
-        if TAB_MODEL is None or SCALER is None or SELECTED_COLS is None:
-            raise HTTPException(
-                status_code=500,
-                detail="Tabular model not loaded."
-            )
+        print("🔄 Loading tabular model on-demand...")
         
-        # Convert input to dict - MUST match training feature names
+        # Load model on-demand
+        tab_model, scaler, selected_cols = load_tabular_model()
+        
+        # Convert input to dict
         input_data = {
             "mean radius": payload.radius_mean,
             "mean texture": payload.texture_mean,
@@ -222,74 +222,61 @@ async def predict_tabular_endpoint(payload: TabularInput):
             "mean fractal dimension": payload.fractal_dimension_mean
         }
         
-        # Run prediction - CRITICAL: Pass SELECTED_COLS for correct feature ordering
-        pred_class, confidence, proba, shap_b64 = predict_tabular(
-            TAB_MODEL,
-            SCALER,
-            input_data,
-            SELECTED_COLS,
-            return_shap=payload.return_shap
+        # Predict with memory-safe function (no SHAP for memory)
+        pred_class, confidence, proba = predict_tabular_memory_safe(
+            tab_model, scaler, input_data, selected_cols
         )
         
+        # Unload models immediately
+        del tab_model, scaler
+        cleanup_memory()
+        print("🗑️  Tabular model unloaded")
+        
         # Convert to standard format
-        # Wisconsin dataset: 0=malignant, 1=benign
         prediction = "benign" if pred_class == 1 else "malignant"
         
-        # response = {
-        #     "prediction": prediction,
-        #     "confidence": round(confidence, 2),
-        #     "predicted_class": int(pred_class),
-        #     "probability": float(prob),
-        #     "shap": shap_b64 if payload.return_shap else None,
-        #     "metrics": TABULAR_MODEL_METRICS,
-        #     "timestamp": datetime.utcnow().isoformat(),
-        #     "type": "tabular"
-        # }
         response = {
-               "prediction": prediction,
-               "confidence": round(float(confidence), 2),
-               "probabilities": {
-                       "malignant": round(float(proba[0]) * 100, 2),
-                       "benign": round(float(proba[1]) * 100, 2),
-                },
-               "predicted_class": int(pred_class),
-               "shap": shap_b64 if payload.return_shap else None,
-               "metrics": TABULAR_MODEL_METRICS,
-               "timestamp": datetime.utcnow().isoformat(),
-               "type": "tabular"
+            "prediction": prediction,
+            "confidence": round(float(confidence), 2),
+            "probabilities": {
+                "malignant": round(float(proba[0]) * 100, 2),
+                "benign": round(float(proba[1]) * 100, 2),
+            },
+            "predicted_class": int(pred_class),
+            "shap": None,  # Disabled for memory optimization
+            "memory_optimized": True,
+            "metrics": TABULAR_MODEL_METRICS,
+            "timestamp": datetime.utcnow().isoformat(),
+            "type": "tabular"
         }
         
         return JSONResponse(response)
         
     except Exception as exc:
+        # Cleanup on error
+        if tab_model is not None:
+            del tab_model
+        if scaler is not None:
+            del scaler
+        cleanup_memory()
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(exc))
-
+    
+    finally:
+        # Final cleanup
+        cleanup_memory()
 
 @app.post("/predict/multimodal")
 async def predict_multimodal_endpoint(
     file: UploadFile = File(...),
-    features: str = Form(...),
-    return_shap: bool = Form(False)
+    features: str = Form(...)
 ):
     """
-    Combined image + tabular prediction for enhanced accuracy
-    
-    Returns:
-        - prediction: 'benign' or 'malignant'
-        - confidence: float (0-100) - combined score
-        - image_confidence: float
-        - tabular_confidence: float
-        - gradcam: base64 encoded heatmap
-        - shap: base64 encoded SHAP visualization (if requested)
-        - metrics: combined model metrics
+    MEMORY-SAFE multimodal prediction:
+    Sequential model loading to avoid memory spikes
     """
     try:
-        if MODELS_DICT is None:
-            raise HTTPException(
-                status_code=500,
-                detail="Multimodal models not loaded."
-            )
+        print("🔄 Starting multimodal prediction (sequential)...")
         
         # Read image
         content = await file.read()
@@ -298,41 +285,59 @@ async def predict_multimodal_endpoint(
         try:
             parsed_features = json.loads(features)
         except Exception:
-            # Try comma-separated numbers
             parts = features.split(',')
             parsed_features = [float(x.strip()) for x in parts]
         
-        # Run multimodal prediction - CRITICAL: Pass SELECTED_COLS
-        result = predict_multimodal(
-            MODELS_DICT,
-            content,
-            parsed_features,
-            SELECTED_COLS,
-            return_shap=return_shap
-        )
+        # STEP 1: Image prediction (load -> predict -> unload)
+        print("🔄 Image prediction...")
+        model = load_image_model_cpu()
+        img_pred_class, img_prob = predict_image_bytes_memory_safe(model, content, gradcam=False)
+        del model
+        cleanup_memory()
+        print("🗑️  Image model unloaded")
         
-        # Determine final prediction
-        final_prob = result['final_score']
+        # STEP 2: Tabular prediction (load -> predict -> unload)
+        print("🔄 Tabular prediction...")
+        tab_model, scaler, selected_cols = load_tabular_model()
+        
+        # Convert features to dict format
+        feature_names = [
+            "mean radius", "mean texture", "mean perimeter", "mean area", "mean smoothness",
+            "mean compactness", "mean concavity", "mean concave points", "mean symmetry", "mean fractal dimension"
+        ]
+        input_data = {name: float(val) for name, val in zip(feature_names, parsed_features[:10])}
+        
+        tab_pred_class, tab_confidence, tab_proba = predict_tabular_memory_safe(
+            tab_model, scaler, input_data, selected_cols
+        )
+        del tab_model, scaler
+        cleanup_memory()
+        print("🗑️  Tabular model unloaded")
+        
+        # STEP 3: Combine predictions
+        final_prob = (img_prob + tab_confidence/100) / 2.0
         prediction = "malignant" if final_prob > 0.5 else "benign"
         confidence = float(final_prob * 100)
         
-        # Combined metrics (average of both models)
+        # Combined metrics
         combined_metrics = {
             "accuracy": round((IMAGE_MODEL_METRICS["accuracy"] + TABULAR_MODEL_METRICS["accuracy"]) / 2, 1),
             "precision": round((IMAGE_MODEL_METRICS["precision"] + TABULAR_MODEL_METRICS["precision"]) / 2, 1),
             "recall": round((IMAGE_MODEL_METRICS["recall"] + TABULAR_MODEL_METRICS["recall"]) / 2, 1),
             "f1Score": round((IMAGE_MODEL_METRICS["f1Score"] + TABULAR_MODEL_METRICS["f1Score"]) / 2, 1),
-            "version": "2.5.1",
-            "algorithm": "Multimodal (DenseNet121 + XGBoost)"
+            "version": "3.0.0",
+            "algorithm": "Sequential Multimodal (Memory-Optimized)"
         }
         
         response = {
             "prediction": prediction,
-            "confidence": round(float(confidence), 2),
-            "image_confidence": round(float(result['image_prob']) * 100, 2),
-            "tabular_confidence": round(float(result['tabular_prob']) * 100, 2),
-            "gradcam": result['gradcam_b64'],
-            "shap": result['shap_b64'],
+            "confidence": round(confidence, 2),
+            "image_confidence": round(float(img_prob) * 100, 2),
+            "tabular_confidence": round(float(tab_confidence), 2),
+            "gradcam": None,  # Disabled for memory
+            "shap": None,     # Disabled for memory
+            "memory_optimized": True,
+            "sequential_processing": True,
             "metrics": combined_metrics,
             "timestamp": datetime.utcnow().isoformat(),
             "type": "multimodal"
@@ -341,13 +346,21 @@ async def predict_multimodal_endpoint(
         return JSONResponse(response)
         
     except Exception as exc:
+        cleanup_memory()
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(exc))
-
+    
+    finally:
+        cleanup_memory()
 
 if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 10000))
     uvicorn.run(
         "backend.api:app",
         host="0.0.0.0",
-        port=8000
+        port=port,
+        reload=False,
+        workers=1,
+        log_level="info"
     )

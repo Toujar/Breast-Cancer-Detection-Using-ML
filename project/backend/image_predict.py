@@ -1,17 +1,15 @@
 # project/backend/image_predict.py
 """
-Image prediction helper: load EfficientNet ultrasound model, predict probability and class, 
-and return Grad-CAM heatmap (base64).
+MEMORY-OPTIMIZED image prediction:
+- CPU-only operations
+- Explicit memory management
+- Load/unload models on-demand
+- Separate Grad-CAM processing
 """
 
 import sys
 import os
-
-# Add project root to PYTHONPATH
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT_DIR not in sys.path:
-    sys.path.insert(0, ROOT_DIR)
-
+import gc
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,42 +21,46 @@ import numpy as np
 import cv2
 import base64
 
+# Add project root to PYTHONPATH
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
 
-def load_image_model(device=None):
-    """Load the NEW EfficientNet ultrasound model"""
-    device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # Use the new trained EfficientNet ultrasound model
-    new_model_path = os.path.join(os.path.dirname(MODELS_DIR), "efficientnet_ultrasound.pth")
+def load_image_model_cpu():
+    """
+    Load EfficientNet model with STRICT CPU-only operation
+    Optimized for minimal memory usage
+    """
+    # FORCE CPU device - no GPU checks
+    device = torch.device("cpu")
     
-    if not os.path.exists(new_model_path):
-        raise FileNotFoundError(
-            f"EfficientNet ultrasound model not found at {new_model_path}. Please check the model path."
-        )
-
-    # Create EfficientNet-B0 model with binary classification
+    model_path = os.path.join(os.path.dirname(MODELS_DIR), "efficientnet_ultrasound.pth")
+    
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model not found: {model_path}")
+    
+    # Create model with minimal memory footprint
     model = models.efficientnet_b0(weights=None)
-    model.classifier[1] = nn.Linear(1280, 2)  # Binary classification: benign vs malignant
+    model.classifier[1] = nn.Linear(1280, 2)
     
-    # Load the trained weights
-    model.load_state_dict(torch.load(new_model_path, map_location=device))
-    model = model.to(device)
-    model.eval()
+    # Load with explicit CPU mapping and no gradients
+    with torch.no_grad():
+        state_dict = torch.load(model_path, map_location=device)
+        model.load_state_dict(state_dict)
+        model = model.to(device)
+        model.eval()
     
-    print(f"✅ Loaded NEW EfficientNet ultrasound model from {new_model_path}")
-    print("🎯 Model: EfficientNet-B0 for ultrasound binary classification")
-    print("📊 Classes: 0=Benign, 1=Malignant")
-    
+    print(f"✅ Image model loaded (CPU-only, {device})")
     return model
 
-
-def image_bytes_to_tensor_ultrasound(image_bytes, image_size=224):
-    """Convert image bytes to tensor for ultrasound model"""
-    # Open image and convert to RGB
+def image_bytes_to_tensor_cpu(image_bytes, image_size=224):
+    """Convert image bytes to CPU tensor with memory optimization"""
+    # Open and convert image
     image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
     
-    # Same transforms as used in training (from gradcam.py)
+    # Minimal transforms for memory efficiency
     transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
@@ -66,52 +68,87 @@ def image_bytes_to_tensor_ultrasound(image_bytes, image_size=224):
     ])
     
     # Apply transforms and add batch dimension
-    tensor = transform(image).unsqueeze(0)  # [1, 3, H, W]
+    with torch.no_grad():
+        tensor = transform(image).unsqueeze(0)  # [1, 3, H, W]
+    
     return tensor
 
-def pil_image_from_bytes(image_bytes):
-    """Convert image bytes to PIL Image"""
-    return Image.open(io.BytesIO(image_bytes)).convert('RGB')
+def predict_image_bytes_memory_safe(model, image_bytes, gradcam=False):
+    """
+    Memory-safe prediction with optional Grad-CAM
+    
+    Args:
+        model: Loaded EfficientNet model
+        image_bytes: Raw image bytes
+        gradcam: Whether to generate Grad-CAM (memory intensive)
+    
+    Returns:
+        If gradcam=False: (pred_class, probability)
+        If gradcam=True: (pred_class, probability, gradcam_b64)
+    """
+    device = torch.device("cpu")
+    
+    # Convert to tensor
+    tensor = image_bytes_to_tensor_cpu(image_bytes, image_size=224)
+    tensor = tensor.to(device)
+    
+    # Prediction with no gradients for memory efficiency
+    with torch.no_grad():
+        output = model(tensor)
+        probs = torch.softmax(output, dim=1)
+        pred_class = int(output.argmax(dim=1).item())
+        prob = float(probs[0, pred_class])
+    
+    # Clean up prediction tensors
+    del output, probs, tensor
+    gc.collect()
+    
+    if not gradcam:
+        return pred_class, prob
+    
+    # Grad-CAM generation (separate memory cycle)
+    print("🔄 Generating Grad-CAM...")
+    gradcam_b64 = generate_gradcam_memory_safe(model, image_bytes, pred_class)
+    
+    return pred_class, prob, gradcam_b64
 
-class EfficientNetGradCAM:
-    """Grad-CAM implementation for EfficientNet"""
+def generate_gradcam_memory_safe(model, image_bytes, class_idx):
+    """
+    Memory-safe Grad-CAM generation with aggressive cleanup
+    """
+    device = torch.device("cpu")
     
-    def __init__(self, model):
-        self.model = model
-        self.gradients = []
-        self.activations = []
-        self.hooks = []
-        
-        # Register hooks on the last feature layer
-        target_layer = model.features[-1]
-        self.hooks.append(target_layer.register_forward_hook(self._forward_hook))
-        self.hooks.append(target_layer.register_backward_hook(self._backward_hook))
+    # Reload tensor for Grad-CAM (requires gradients)
+    tensor = image_bytes_to_tensor_cpu(image_bytes, image_size=224)
+    tensor = tensor.to(device)
+    tensor.requires_grad_(True)
     
-    def _forward_hook(self, module, input, output):
-        self.activations.append(output)
+    # Hook for feature extraction
+    activations = []
+    gradients = []
     
-    def _backward_hook(self, module, grad_in, grad_out):
-        self.gradients.append(grad_out[0])
+    def forward_hook(module, input, output):
+        activations.append(output)
     
-    def generate_cam(self, input_tensor, class_idx=None):
-        """Generate Grad-CAM heatmap"""
-        # Clear previous gradients and activations
-        self.gradients.clear()
-        self.activations.clear()
-        
+    def backward_hook(module, grad_in, grad_out):
+        gradients.append(grad_out[0])
+    
+    # Register hooks on last feature layer
+    target_layer = model.features[-1]
+    h1 = target_layer.register_forward_hook(forward_hook)
+    h2 = target_layer.register_backward_hook(backward_hook)
+    
+    try:
         # Forward pass
-        output = self.model(input_tensor)
+        output = model(tensor)
         
-        if class_idx is None:
-            class_idx = output.argmax().item()
-        
-        # Backward pass
-        self.model.zero_grad()
+        # Backward pass for gradients
+        model.zero_grad()
         output[0, class_idx].backward()
         
         # Generate CAM
-        grad = self.gradients[0].mean(dim=(2, 3), keepdim=True)
-        cam = (grad * self.activations[0]).sum(dim=1).squeeze()
+        grad = gradients[0].mean(dim=(2, 3), keepdim=True)
+        cam = (grad * activations[0]).sum(dim=1).squeeze()
         cam = F.relu(cam)
         
         # Normalize CAM
@@ -119,13 +156,22 @@ class EfficientNetGradCAM:
         cam = cv2.resize(cam, (224, 224))
         cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
         
-        return cam
-    
-    def remove_hooks(self):
-        """Remove all hooks"""
-        for hook in self.hooks:
-            hook.remove()
-        self.hooks.clear()
+        # Create overlay
+        pil_img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        overlay = overlay_heatmap_on_image(pil_img, cam, alpha=0.4)
+        gradcam_b64 = pil_to_base64(overlay)
+        
+        # Cleanup
+        del output, grad, cam, activations, gradients, tensor, pil_img, overlay
+        gc.collect()
+        
+        return gradcam_b64
+        
+    finally:
+        # Remove hooks
+        h1.remove()
+        h2.remove()
+        gc.collect()
 
 def overlay_heatmap_on_image(pil_img, heatmap, alpha=0.4):
     """Overlay heatmap on original image"""
@@ -146,40 +192,5 @@ def pil_to_base64(pil_img):
     buffer = io.BytesIO()
     pil_img.save(buffer, format='PNG')
     img_str = base64.b64encode(buffer.getvalue()).decode()
+    buffer.close()
     return img_str
-
-def predict_image_bytes(model, image_bytes):
-    """
-    Predict using NEW EfficientNet ultrasound model
-    
-    Returns:
-        pred_class int (0/1),
-        probability float,
-        gradcam_base64 str
-    """
-    device = next(model.parameters()).device
-
-    # Convert to tensor for ultrasound model
-    tensor = image_bytes_to_tensor_ultrasound(image_bytes, image_size=224)
-    tensor = tensor.to(device)
-
-    with torch.no_grad():
-        out = model(tensor)
-        probs = torch.softmax(out, dim=1)
-        pred_class = int(out.argmax(dim=1).item())
-        
-        # Get probability of the predicted class
-        prob = float(probs[0, pred_class])
-
-    # ---- Grad-CAM ----
-    gradcam = EfficientNetGradCAM(model)
-    heatmap = gradcam.generate_cam(tensor, class_idx=pred_class)
-    
-    # Overlay on original image
-    pil_img = pil_image_from_bytes(image_bytes)
-    overlay = overlay_heatmap_on_image(pil_img, heatmap, alpha=0.4)
-    gradcam.remove_hooks()
-
-    heatmap_b64 = pil_to_base64(overlay)
-
-    return pred_class, prob, heatmap_b64
