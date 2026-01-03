@@ -9,23 +9,68 @@ const isProtectedRoute = createRouteMatcher([
   '/analytics(.*)',
   '/settings(.*)',
   '/api/admin(.*)',
-  '/api/doctor(.*)',
+  '/api/doctor/(.*)',
   '/api/user(.*)',
   '/api/predict(.*)',
   '/api/dashboard(.*)',
   '/api/predictions(.*)',
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isProtectedRoute(req)) {
-    // ⬅️ THIS IS THE KEY LINE
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/about',
+  '/contact',
+  '/privacy-policy',
+  '/terms-and-conditions',
+  '/unauthorized',
+  '/api/auth/callback',
+  '/api/doctors(.*)',
+  '/api/webhooks(.*)',
+]);
+
+export default clerkMiddleware((auth, req) => {
+  const { userId, sessionClaims } = auth();
+  const { pathname } = req.nextUrl;
+
+  // Allow public routes
+  if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  const { userId } = await auth();
+  // Protect routes
+  if (isProtectedRoute(req)) {
+    if (!userId) {
+      const signInUrl = new URL('/sign-in', req.url);
+      signInUrl.searchParams.set('redirect_url', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
 
-  if (!userId) {
-    return NextResponse.redirect(new URL('/sign-in', req.url));
+    // ✅ EDGE-SAFE role access
+    const role =
+      (sessionClaims?.publicMetadata as any)?.role || 'user';
+
+    // Role guards
+    if (pathname.startsWith('/dashboard/admin') && role !== 'admin') {
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    }
+
+    if (pathname.startsWith('/dashboard/doctor') && role !== 'doctor') {
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    }
+
+    if (pathname.startsWith('/dashboard/user') && role !== 'user') {
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    }
+
+    if (pathname.startsWith('/api/admin') && role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    if (pathname.startsWith('/api/doctor/') && !['doctor', 'admin'].includes(role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
   }
 
   return NextResponse.next();
@@ -33,13 +78,7 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Only run middleware where needed
-    '/dashboard/:path*',
-    '/predict/:path*',
-    '/results/:path*',
-    '/history/:path*',
-    '/analytics/:path*',
-    '/settings/:path*',
-    '/api/:path*',
+    '/((?!_next|.*\\..*).*)',
+    '/(api|trpc)(.*)',
   ],
 };
