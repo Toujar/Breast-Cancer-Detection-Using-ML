@@ -30,21 +30,31 @@ export default function Home() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [stats, setStats] = useState({
-    totalPredictions: 1247,
+    totalPredictions: 124,
     accuracy: 94.6, // Real model accuracy from your test results
     usersServed: 342,
-    modelsActive: 3
+    modelsActive: 2
   });
 
   // Redirect authenticated users to their dashboard
-  useEffect(() => {
-    if (isLoaded && user) {
-      const role = (user?.publicMetadata?.role as string) || 'user';
-      const dashboardUrl = getDashboardUrl(role as any);
-      console.log('🔄 Redirecting authenticated user to:', dashboardUrl);
-      router.push(dashboardUrl);
-    }
-  }, [isLoaded, user, router]);
+  // useEffect(() => {
+  //   if (isLoaded && user) {
+  //     const role = (user?.publicMetadata?.role as string) || 'user';
+  //     const dashboardUrl = getDashboardUrl(role as any);
+  //     console.log('🔄 Redirecting authenticated user to:', dashboardUrl);
+  //     router.push(dashboardUrl);
+  //   }
+  // }, [isLoaded, user, router]);
+useEffect(() => {
+  if (!isLoaded || !user) return;
+
+  const role = (user.publicMetadata?.role as string) || 'user';
+  const dashboardUrl = getDashboardUrl(role as any);
+
+  if (window.location.pathname === '/') {
+    router.replace(dashboardUrl);
+  }
+}, [isLoaded, user, router]);
 
   // Show loading state while checking authentication
   if (!isLoaded) {

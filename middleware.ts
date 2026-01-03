@@ -1,42 +1,42 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-  const pathname = req.nextUrl.pathname;
+// Routes that REQUIRE authentication
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/predict(.*)',
+  '/results(.*)',
+  '/history(.*)',
+  '/analytics(.*)',
+  '/settings(.*)',
+  '/api/(.*)',
+]);
 
-  // ✅ ALWAYS allow home page
-  if (pathname === '/') {
+export default clerkMiddleware((auth, req) => {
+  const { userId } = auth();
+
+  // Allow all public routes
+  if (!isProtectedRoute(req)) {
     return NextResponse.next();
   }
 
-  // Public pages
-  if (
-    pathname.startsWith('/sign-in') ||
-    pathname.startsWith('/sign-up') ||
-    pathname.startsWith('/about') ||
-    pathname.startsWith('/contact') ||
-    pathname.startsWith('/privacy-policy') ||
-    pathname.startsWith('/terms-and-conditions')
-  ) {
-    return NextResponse.next();
-  }
-
-  // Protect dashboards & APIs
-  if (
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/predict') ||
-    pathname.startsWith('/results') ||
-    pathname.startsWith('/api')
-  ) {
-    if (!userId) {
-      return NextResponse.redirect(new URL('/sign-in', req.url));
-    }
+  // If user is not logged in → redirect to sign-in
+  if (!userId) {
+    const signInUrl = new URL('/sign-in', req.url);
+    signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ['/((?!_next|.*\\..*).*)'],
+  matcher: [
+    /*
+     * Run middleware on all routes except:
+     * - _next (Next.js internals)
+     * - static files (images, css, js, etc.)
+     */
+    '/((?!_next|.*\\..*).*)',
+  ],
 };
