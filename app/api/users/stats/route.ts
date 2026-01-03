@@ -110,25 +110,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const userData: any = user;
     return NextResponse.json({
       success: true,
       user: {
-        id: user._id,
-        clerkId: user.clerkId,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        fullName: user.role === 'doctor' ? `Dr. ${user.firstName} ${user.lastName}` : `${user.firstName} ${user.lastName}`,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role,
-        profileImage: user.profileImage,
-        isVerified: user.isVerified,
-        subscription: user.subscription,
-        stats: user.stats,
-        preferences: user.preferences,
-        lastLoginAt: user.lastLoginAt,
-        loginCount: user.loginCount,
-        createdAt: user.createdAt
+        id: userData._id,
+        clerkId: userData.clerkId,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        fullName: userData.role === 'doctor' ? `Dr. ${userData.firstName} ${userData.lastName}` : `${userData.firstName} ${userData.lastName}`,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        role: userData.role,
+        profileImage: userData.profileImage,
+        isVerified: userData.isVerified,
+        subscription: userData.subscription,
+        stats: userData.stats,
+        preferences: userData.preferences,
+        lastLoginAt: userData.lastLoginAt,
+        loginCount: userData.loginCount,
+        createdAt: userData.createdAt
       }
     });
   } catch (error: any) {

@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      doctors: doctors.map((doctor) => ({
+      doctors: doctors.map((doctor: any) => ({
         id: doctor._id,
         clerkId: doctor.clerkId,
         firstName: doctor.firstName,
@@ -123,7 +123,8 @@ export async function POST(req: NextRequest) {
       doctor = await Doctor.findById(doctorId).lean();
     }
 
-    if (!doctor || !doctor.isActive || !doctor.isVerified) {
+    const doctorData: any = doctor;
+    if (!doctor || !doctorData.isActive || !doctorData.isVerified) {
       return NextResponse.json(
         { error: 'Doctor not found' },
         { status: 404 }
@@ -133,30 +134,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       doctor: {
-        id: doctor._id,
-        clerkId: doctor.clerkId,
-        firstName: doctor.firstName,
-        lastName: doctor.lastName,
-        fullName: `Dr. ${doctor.firstName} ${doctor.lastName}`,
-        email: doctor.email,
-        phoneNumber: doctor.phoneNumber,
-        specialization: doctor.specialization,
-        qualification: doctor.qualification,
-        experience: doctor.experience,
-        licenseNumber: doctor.licenseNumber,
-        hospital: doctor.hospital,
-        location: doctor.location,
-        rating: doctor.rating,
-        consultationFee: doctor.consultationFee,
-        totalPatients: doctor.totalPatients,
-        totalConsultations: doctor.totalConsultations,
-        languages: doctor.languages,
-        profileImage: doctor.profileImage,
-        bio: doctor.bio,
-        availableSlots: doctor.availableSlots,
-        awards: doctor.awards,
-        isVerified: doctor.isVerified,
-        createdAt: doctor.createdAt
+        id: doctorData._id,
+        clerkId: doctorData.clerkId,
+        firstName: doctorData.firstName,
+        lastName: doctorData.lastName,
+        fullName: `Dr. ${doctorData.firstName} ${doctorData.lastName}`,
+        email: doctorData.email,
+        phoneNumber: doctorData.phoneNumber,
+        specialization: doctorData.specialization,
+        qualification: doctorData.qualification,
+        experience: doctorData.experience,
+        licenseNumber: doctorData.licenseNumber,
+        hospital: doctorData.hospital,
+        location: doctorData.location,
+        rating: doctorData.rating,
+        consultationFee: doctorData.consultationFee,
+        totalPatients: doctorData.totalPatients,
+        totalConsultations: doctorData.totalConsultations,
+        languages: doctorData.languages,
+        profileImage: doctorData.profileImage,
+        bio: doctorData.bio,
+        availableSlots: doctorData.availableSlots,
+        awards: doctorData.awards,
+        isVerified: doctorData.isVerified,
+        createdAt: doctorData.createdAt
       }
     });
   } catch (error) {

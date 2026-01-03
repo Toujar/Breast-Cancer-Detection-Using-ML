@@ -461,7 +461,7 @@ export default function ResultsPage() {
             </div>
 
             <AllDoctorsSection 
-              userLocation={user?.location} 
+              userLocation={user?.publicMetadata?.location as string} 
               aiResult={{
                 riskLevel: result.prediction === 'benign' ? 'Low' : 'High',
                 confidence: result.confidence,

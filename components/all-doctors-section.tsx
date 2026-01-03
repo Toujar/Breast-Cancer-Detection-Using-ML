@@ -231,8 +231,8 @@ export function AllDoctorsSection({ userLocation, aiResult }: AllDoctorsSectionP
   };
 
   // Get unique locations and specializations for filters
-  const uniqueLocations = [...new Set(allDoctors.map(d => d.location))].filter(Boolean);
-  const uniqueSpecializations = [...new Set(allDoctors.map(d => d.specialization))].filter(Boolean);
+  const uniqueLocations = Array.from(new Set(allDoctors.map(d => d.location))).filter(Boolean);
+  const uniqueSpecializations = Array.from(new Set(allDoctors.map(d => d.specialization))).filter(Boolean);
 
   return (
     <Card className="shadow-xl rounded-3xl overflow-hidden border border-gray-700/30 bg-black/40 backdrop-blur-xl">
@@ -392,7 +392,7 @@ export function AllDoctorsSection({ userLocation, aiResult }: AllDoctorsSectionP
                       
                       {doctor.totalPatients && (
                         <div className="flex items-center text-xs text-gray-400 mb-3">
-                          <Users className="h-3 w-3 mr-1" />
+                          <User className="h-3 w-3 mr-1" />
                           <span>{doctor.totalPatients}+ patients treated</span>
                         </div>
                       )}

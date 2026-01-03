@@ -37,7 +37,7 @@ export async function GET() {
       .lean();
 
     // Transform the data to match the expected format
-    const transformedRequests = appointmentRequests.map(req => ({
+    const transformedRequests = appointmentRequests.map((req: any) => ({
       _id: req._id.toString(),
       patientName: req.patientName,
       patientAge: req.patientAge,
@@ -46,11 +46,16 @@ export async function GET() {
       createdAt: req.createdAt.toISOString(),
       consultationMode: req.consultationMode,
       status: req.status,
-      aiResult: {
+      aiResult: req.aiResult ? {
         riskLevel: req.aiResult.riskLevel,
         confidence: req.aiResult.confidence,
         summary: req.aiResult.summary,
         imageAnalysis: req.aiResult.imageAnalysis || 'No image analysis available'
+      } : {
+        riskLevel: 'Unknown',
+        confidence: 0,
+        summary: 'No AI analysis available',
+        imageAnalysis: 'No image analysis available'
       },
       urgency: req.urgency,
       preferredDate: req.preferredDate,
@@ -59,8 +64,8 @@ export async function GET() {
       appointmentDate: req.appointmentDate,
       rejectionReason: req.rejectionReason,
       patientId: req.patientId ? {
-        username: `${req.patientId.firstName} ${req.patientId.lastName}`,
-        email: req.patientId.email
+        username: `${req.patientId.firstName || 'Unknown'} ${req.patientId.lastName || 'User'}`,
+        email: req.patientId.email || 'No email'
       } : null
     }));
     

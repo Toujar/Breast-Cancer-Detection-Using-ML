@@ -29,7 +29,8 @@ export async function GET(
         return NextResponse.json({ error: 'Invalid or expired token' }, { status: 403 });
       }
     } else if (authedUser) {
-      if (authedUser.role !== 'admin' && String(doc.userId) !== String(authedUser.id || authedUser._id)) {
+      const docData: any = doc;
+      if (authedUser.role !== 'admin' && String(docData.userId) !== String(authedUser.id || authedUser._id)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
@@ -38,17 +39,18 @@ export async function GET(
     const includeGradcam = request.nextUrl.searchParams.get('gradcam') === 'true';
     const includeShap = request.nextUrl.searchParams.get('shap') === 'true';
 
+    const docData: any = doc;
     return NextResponse.json({
-      id: doc.predictionId,
-      type: doc.type,
-      prediction: doc.prediction,
-      confidence: doc.confidence,
-      inputData: doc.inputData,
-      modelMetrics: doc.modelMetrics,
-      gradcam: (includeGradcam && doc.gradcam) ? doc.gradcam : undefined,
-      shap: (includeShap && doc.shap) ? doc.shap : undefined,
-      timestamp: doc.timestamp,
-      userId: doc.userId,
+      id: docData.predictionId,
+      type: docData.type,
+      prediction: docData.prediction,
+      confidence: docData.confidence,
+      inputData: docData.inputData,
+      modelMetrics: docData.modelMetrics,
+      gradcam: (includeGradcam && docData.gradcam) ? docData.gradcam : undefined,
+      shap: (includeShap && docData.shap) ? docData.shap : undefined,
+      timestamp: docData.timestamp,
+      userId: docData.userId,
     });
   } catch (error: any) {
     if (error?.message === 'UNAUTHORIZED') {

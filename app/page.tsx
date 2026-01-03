@@ -39,7 +39,7 @@ export default function Home() {
   // Redirect authenticated users to their dashboard
   useEffect(() => {
     if (isLoaded && user) {
-      const role = (user.publicMetadata?.role as string) || 'user';
+      const role = (user?.publicMetadata?.role as string) || 'user';
       const dashboardUrl = getDashboardUrl(role as any);
       console.log('🔄 Redirecting authenticated user to:', dashboardUrl);
       router.push(dashboardUrl);
@@ -83,7 +83,7 @@ export default function Home() {
 
   // Show redirecting state for authenticated users
   if (isLoaded && user) {
-    const role = (user.publicMetadata?.role as string) || 'user';
+    const role = (user?.publicMetadata?.role as string) || 'user';
     const dashboardName = role === 'admin' ? 'Admin Dashboard' : 
                          role === 'doctor' ? 'Doctor Dashboard' : 
                          'Patient Dashboard';
@@ -150,7 +150,8 @@ export default function Home() {
 
   const getDashboardLink = () => {
     if (!user) return '/sign-in';
-    const role = (user.publicMetadata?.role as string) || 'user';
+    const userRole = (user as any).publicMetadata?.role as string;
+    const role = userRole || 'user';
     return getDashboardUrl(role as any);
   };
 

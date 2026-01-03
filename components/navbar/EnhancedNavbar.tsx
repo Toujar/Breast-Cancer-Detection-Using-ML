@@ -170,6 +170,7 @@ export function EnhancedNavbar({ className = '', showNavigation = true }: Enhanc
                   <UserButton.Action 
                     label="signOut"
                     labelIcon={<LogOut className="h-4 w-4" />}
+                    onClick={() => {}}
                   />
                 </UserButton.MenuItems>
               </UserButton>

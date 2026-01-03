@@ -136,7 +136,7 @@ doctorSchema.methods.getAvailabilityStatus = function() {
   const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
   const currentTime = now.toTimeString().slice(0, 5);
   
-  const todaySlot = this.availableSlots.find(slot => slot.day === currentDay);
+  const todaySlot = this.availableSlots.find((slot: any) => slot.day === currentDay);
   
   if (!todaySlot) {
     return 'Not available today';
@@ -167,6 +167,6 @@ doctorSchema.statics.findBySpecialization = function(specialization: string) {
   }).sort({ rating: -1, experience: -1 });
 };
 
-const Doctor = mongoose.models.Doctor || mongoose.model('Doctor', doctorSchema);
+const Doctor = mongoose.models.Doctor || mongoose.model<any>('Doctor', doctorSchema);
 
 export default Doctor;
