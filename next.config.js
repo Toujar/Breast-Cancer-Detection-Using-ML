@@ -1,17 +1,14 @@
 
 /** @type {import('next').NextConfig} */
-const isProd = process.env.NODE_ENV === 'production'
-
 const nextConfig = {
-  // output: 'export',
   images: {
     unoptimized: true,
   },
-  basePath: isProd ? '/Breast-Cancer-Detection' : '',
-  assetPrefix: isProd ? '/Breast-Cancer-Detection/' : '',
-    eslint: {
+  eslint: {
     ignoreDuringBuilds: true,
   },
+  // Remove basePath and assetPrefix for standard deployment
+  // Only use these for GitHub Pages static export
 }
 
 module.exports = nextConfig
