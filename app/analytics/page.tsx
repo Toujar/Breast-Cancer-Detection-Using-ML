@@ -80,7 +80,7 @@ export default function AnalyticsPage() {
       console.log('Stats response:', statsRes.status, statsRes.ok);
       console.log('Predictions response:', predictionsRes.status, predictionsRes.ok);
 
-      if (statsRes.ok) {
+      if (statsRes instanceof Response && statsRes.ok) {
         const stats = await statsRes.json();
         console.log('Stats data:', stats);
         setAnalytics(prev => ({
@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
         }
       }
 
-      if (predictionsRes.ok) {
+      if (predictionsRes instanceof Response && predictionsRes.ok) {
         const predictions = await predictionsRes.json();
         console.log('Predictions data:', predictions);
         const imageCount = predictions.filter((p: any) => p.type === 'image').length;
