@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextResponse } from "next/server";
 import { requireUser } from "../../_utils/auth-utils";
 import connectDB from "@/lib/mongodb";

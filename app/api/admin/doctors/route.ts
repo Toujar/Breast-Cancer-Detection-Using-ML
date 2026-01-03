@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextResponse } from 'next/server';
 import { createClerkClient } from '@clerk/nextjs/server';
 import { requireAdmin } from '../../_utils/auth-utils';
