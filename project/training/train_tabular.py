@@ -79,7 +79,13 @@ def train_tabular(random_state=42):
         "precision": float(prec * 100),
         "recall": float(rec * 100),
         "f1Score": float(f1 * 100),
- 
+        "auc": float(auc * 100)
+    }
+    
+    metrics_path = os.path.join(MODELS_DIR, 'tabular_metrics.json')
+    with open(metrics_path, 'w') as f:
+        json.dump(metrics, f, indent=2)
+    print(f"Saved metrics -> {metrics_path}")
 
     # save simple feature importance plot
     plt.figure(figsize=(6,4))

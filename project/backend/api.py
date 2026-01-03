@@ -39,7 +39,12 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://early-breast-cancer-detection.vercel.app"],
+    allow_origins=[
+        "https://early-breast-cancer-detection.vercel.app",
+        "https://breast-cancer-detection-using-ml.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:8000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -83,7 +88,7 @@ async def load_all_models():
     try:
         IMAGE_MODEL = load_image_model()
         print("✅ Image model loaded successfully")
-    except:
+    except Exception as e:
         print(f"⚠️  Warning: Image model not loaded: {e}")
         IMAGE_MODEL = None
     
