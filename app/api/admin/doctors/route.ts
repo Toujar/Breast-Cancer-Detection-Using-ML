@@ -7,6 +7,27 @@ import Doctor from '@/models/Doctor';
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
+type DoctorLean = {
+  _id: unknown;
+  clerkId: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  createdAt: Date;
+  specialization?: string;
+  qualification?: string;
+  experience?: number;
+  hospital?: string;
+  location?: string;
+  licenseNumber?: string;
+  phoneNumber?: string;
+  rating?: number;
+  consultationFee?: number;
+  totalPatients?: number;
+  totalConsultations?: number;
+  isVerified?: boolean;
+  isActive?: boolean;
+};
 
 export async function GET() {
   try {
@@ -17,9 +38,13 @@ export async function GET() {
     await connectDB();
 
     // Fetch all doctors from MongoDB
-    const doctors = await Doctor.find({ isActive: true })
-      .sort({ createdAt: -1 })
-      .lean();
+    // const doctors = await Doctor.find({ isActive: true })
+    //   .sort({ createdAt: -1 })
+    //   .lean();
+    const doctors = (await Doctor.find({ isActive: true })
+  .sort({ createdAt: -1 })
+  .lean()) as unknown as DoctorLean[];
+
 
     // Also get Clerk data for last sign in information
     const clerkDoctors = await Promise.all(
