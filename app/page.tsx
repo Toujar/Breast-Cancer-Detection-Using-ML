@@ -37,24 +37,14 @@ export default function Home() {
   });
 
   // Redirect authenticated users to their dashboard
-  // useEffect(() => {
-  //   if (isLoaded && user) {
-  //     const role = (user?.publicMetadata?.role as string) || 'user';
-  //     const dashboardUrl = getDashboardUrl(role as any);
-  //     console.log('🔄 Redirecting authenticated user to:', dashboardUrl);
-  //     router.push(dashboardUrl);
-  //   }
-  // }, [isLoaded, user, router]);
-useEffect(() => {
-  if (!isLoaded || !user) return;
-
-  const role = (user.publicMetadata?.role as string) || 'user';
-  const dashboardUrl = getDashboardUrl(role as any);
-
-  if (window.location.pathname === '/') {
-    router.replace(dashboardUrl);
-  }
-}, [isLoaded, user, router]);
+  useEffect(() => {
+    if (isLoaded && user) {
+      const role = (user?.publicMetadata?.role as string) || 'user';
+      const dashboardUrl = getDashboardUrl(role as any);
+      console.log('🔄 Redirecting authenticated user to:', dashboardUrl);
+      router.push(dashboardUrl);
+    }
+  }, [isLoaded, user, router]);
 
   // Show loading state while checking authentication
   if (!isLoaded) {
