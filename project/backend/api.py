@@ -10,7 +10,9 @@ import sys
 import os
 
 # Add project root to PYTHONPATH
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
@@ -37,7 +39,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://early-breast-cancer-detection.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,7 +83,7 @@ async def load_all_models():
     try:
         IMAGE_MODEL = load_image_model()
         print("✅ Image model loaded successfully")
-    except Exception as e:
+    except:
         print(f"⚠️  Warning: Image model not loaded: {e}")
         IMAGE_MODEL = None
     
@@ -342,6 +344,5 @@ if __name__ == "__main__":
     uvicorn.run(
         "backend.api:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True
+        port=8000
     )
