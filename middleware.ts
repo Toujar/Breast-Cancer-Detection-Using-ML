@@ -30,8 +30,9 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
 ]);
 
-export default clerkMiddleware((auth, req) => {
-  const { userId, sessionClaims } = auth();
+export default clerkMiddleware(async (auth, req) => {
+  // ✅ FIX: await auth()
+  const { userId, sessionClaims } = await auth();
   const { pathname } = req.nextUrl;
 
   // Allow public routes
@@ -68,7 +69,10 @@ export default clerkMiddleware((auth, req) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    if (pathname.startsWith('/api/doctor/') && !['doctor', 'admin'].includes(role)) {
+    if (
+      pathname.startsWith('/api/doctor/') &&
+      !['doctor', 'admin'].includes(role)
+    ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
   }
