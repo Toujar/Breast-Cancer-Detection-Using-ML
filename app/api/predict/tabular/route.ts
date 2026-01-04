@@ -11,8 +11,8 @@ export async function POST(req: Request) {
     const authedUser = await requireUser();
     const body = await req.json();
     
-    // Use NEW backend API
-    const backendUrl = process.env.NEW_BACKEND_URL || "http://127.0.0.1:8000";
+    // Get backend URL from environment with production fallback
+    const backendUrl = process.env.NEW_BACKEND_URL || "https://breast-cancer-detection-using-ml-okdd.onrender.com";
 
     const res = await fetch(`${backendUrl}/predict/tabular`, {
       method: "POST",

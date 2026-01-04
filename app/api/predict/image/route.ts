@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 400 });
     }
 
-    // Use NEW backend API
-    const backendUrl = process.env.NEW_BACKEND_URL || 'http://127.0.0.1:8000';
+    // Get backend URL from environment with production fallback
+    const backendUrl = process.env.NEW_BACKEND_URL || 'https://breast-cancer-detection-using-ml-okdd.onrender.com';
     const proxyForm = new FormData();
     proxyForm.append('file', file, file.name);
     proxyForm.append('return_gradcam', 'true');
