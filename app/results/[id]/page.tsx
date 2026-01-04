@@ -191,12 +191,12 @@ export default function ResultsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
-        <Card className="max-w-md border border-gray-700/30 bg-black/40 backdrop-blur-xl">
-          <CardContent className="p-8 text-center">
-            <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2 text-white">Error Loading Results</h2>
-            <p className="text-gray-300 mb-6">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center px-4">
+        <Card className="max-w-md w-full border border-gray-700/30 bg-black/40 backdrop-blur-xl">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <AlertTriangle className="h-10 w-10 sm:h-12 sm:w-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-lg sm:text-xl font-semibold mb-2 text-white">Error Loading Results</h2>
+            <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">{error}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button onClick={pollForResult} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
                 {isLoading ? (
@@ -209,7 +209,7 @@ export default function ResultsPage() {
                 )}
               </Button>
               <Link href="/dashboard">
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white">Return to Dashboard</Button>
+                <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white w-full sm:w-auto">Return to Dashboard</Button>
               </Link>
             </div>
           </CardContent>
@@ -220,10 +220,10 @@ export default function ResultsPage() {
 
   if (!result) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center px-4">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 text-blue-400 animate-spin mx-auto mb-4" />
-          <p className="text-gray-300">Waiting for analysis result...</p>
+          <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-blue-400 animate-spin mx-auto mb-4" />
+          <p className="text-gray-300 text-sm sm:text-base">Waiting for analysis result...</p>
         </div>
       </div>
     );
@@ -235,21 +235,22 @@ export default function ResultsPage() {
       <EnhancedNavbar />
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-2 xs:px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Header Actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">AI Analysis Results</h1>
-            <p className="text-gray-300">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 mb-6 sm:mb-8">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">AI Analysis Results</h1>
+            <p className="text-sm sm:text-base text-gray-300">
               Analysis completed on {new Date(result.timestamp).toLocaleString()}
             </p>
           </div>
-          <div className="flex gap-3 mt-4 sm:mt-0">
-            <Button onClick={handleDownloadReport} className="bg-blue-600 hover:bg-blue-700">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button onClick={handleDownloadReport} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" />
-              Download Report
+              <span className="hidden xs:inline">Download Report</span>
+              <span className="xs:hidden">Download</span>
             </Button>
-            <Button onClick={handleShare} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white">
+            <Button onClick={handleShare} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
               <Share2 className="h-4 w-4 mr-2" />
               Share
             </Button>
@@ -257,45 +258,45 @@ export default function ResultsPage() {
         </div>
 
         {/* Main Result Card */}
-        <Card className={`mb-8 border border-gray-700/30 shadow-xl rounded-2xl overflow-hidden backdrop-blur-xl ${
+        <Card className={`mb-6 sm:mb-8 border border-gray-700/30 shadow-xl rounded-2xl overflow-hidden backdrop-blur-xl ${
           result.prediction === 'benign'
             ? 'bg-gradient-to-br from-green-900/40 to-emerald-900/40 border-l-4 border-green-500'
             : 'bg-gradient-to-br from-red-900/40 to-pink-900/40 border-l-4 border-red-500'
         }`}>
-          <CardContent className="p-8">
+          <CardContent className="p-4 sm:p-8">
             <div className="text-center">
               {/* Result Icon */}
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center shadow-lg ${
+              <div className={`w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center shadow-lg ${
                 result.prediction === 'benign'
                   ? 'bg-green-500/20 border-4 border-green-400'
                   : 'bg-red-500/20 border-4 border-red-400'
               }`}>
                 {result.prediction === 'benign' ? (
-                  <CheckCircle className="h-10 w-10 text-green-400" />
+                  <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-400" />
                 ) : (
-                  <AlertTriangle className="h-10 w-10 text-red-400" />
+                  <AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10 text-red-400" />
                 )}
               </div>
 
               {/* Result Text */}
-              <h2 className={`text-3xl font-bold mb-4 ${
+              <h2 className={`text-xl sm:text-3xl font-bold mb-3 sm:mb-4 px-2 ${
                 result.prediction === 'benign' ? 'text-green-300' : 'text-red-300'
               }`}>
                 {result.prediction === 'benign' ? '✅ No Cancer Detected' : '⚠️ Cancer Signs Found'}
               </h2>
 
-              <p className="text-lg text-gray-300 mb-6 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg text-gray-300 mb-4 sm:mb-6 max-w-2xl mx-auto px-4">
                 {result.prediction === 'benign'
                   ? 'Great news! Your test shows no signs of breast cancer. Continue with regular checkups and maintain a healthy lifestyle.'
                   : 'Cancer symptoms detected. Please consult with a healthcare professional immediately for further evaluation and treatment options.'}
               </p>
 
               {/* Confidence */}
-              <div className="bg-black/40 backdrop-blur-sm p-6 rounded-xl shadow-inner max-w-md mx-auto border border-gray-600/30">
+              <div className="bg-black/40 backdrop-blur-sm p-4 sm:p-6 rounded-xl shadow-inner max-w-sm mx-auto border border-gray-600/30">
                 <div className="flex items-center justify-center gap-2 mb-3">
-                  <Brain className="h-5 w-5 text-blue-400" />
-                  <span className="font-semibold text-white">AI Confidence</span>
-                  <Badge className={`${
+                  <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                  <span className="font-semibold text-white text-sm sm:text-base">AI Confidence</span>
+                  <Badge className={`text-xs sm:text-sm ${
                     result.prediction === 'benign' ? 'bg-green-900/50 text-green-300 border-green-600/30' : 'bg-red-900/50 text-red-300 border-red-600/30'
                   }`}>
                     {result.confidence.toFixed(1)}%
@@ -303,13 +304,13 @@ export default function ResultsPage() {
                 </div>
                 <Progress
                   value={result.confidence}
-                  className={`h-3 bg-gray-700 ${
+                  className={`h-2 sm:h-3 bg-gray-700 ${
                     result.prediction === 'benign'
                       ? '[&>div]:bg-green-500'
                       : '[&>div]:bg-red-500'
                   }`}
                 />
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-xs sm:text-sm text-gray-400 mt-2">
                   This shows how confident the AI model is about the prediction
                 </p>
               </div>
@@ -319,67 +320,69 @@ export default function ResultsPage() {
 
         {/* Grad-CAM Visualization (for image predictions) */}
         {result.type === 'image' && (
-          <Card className="mb-8 shadow-lg border border-gray-700/30 bg-black/40 backdrop-blur-xl">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-b border-gray-600/30">
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
-                AI Visualization {result.gradcam ? '(Grad-CAM)' : '(Analysis Complete)'}
+          <Card className="mb-6 sm:mb-8 shadow-lg border border-gray-700/30 bg-black/40 backdrop-blur-xl">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-b border-gray-600/30 p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Brain className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">AI Visualization {result.gradcam ? '(Grad-CAM)' : '(Analysis Complete)'}</span>
+                <span className="sm:hidden">AI Analysis {result.gradcam ? '(Visual)' : '(Complete)'}</span>
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-blue-100 text-sm sm:text-base">
                 {result.gradcam 
                   ? 'This heatmap shows which areas the AI focused on when making its prediction'
                   : 'AI analysis completed successfully - visualization not available for this analysis'
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {result.gradcam ? (
-                <div className="grid lg:grid-cols-2 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
                   {/* Left Side - Explanation */}
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-blue-900/50 to-indigo-900/50 p-6 rounded-xl border border-blue-600/30">
-                      <h3 className="font-bold text-xl mb-4 text-blue-300 flex items-center gap-2">
-                        <Info className="h-6 w-6" />
-                        Understanding the Heatmap
+                  <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
+                    <div className="bg-gradient-to-r from-blue-900/50 to-indigo-900/50 p-4 sm:p-6 rounded-xl border border-blue-600/30">
+                      <h3 className="font-bold text-lg sm:text-xl mb-3 sm:mb-4 text-blue-300 flex items-center gap-2">
+                        <Info className="h-5 w-5 sm:h-6 sm:w-6" />
+                        <span className="hidden sm:inline">Understanding the Heatmap</span>
+                        <span className="sm:hidden">Heatmap Guide</span>
                       </h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <span className="inline-block w-6 h-6 bg-red-500 rounded-full shadow-md"></span>
-                          <span className="text-gray-300"><strong>Red areas:</strong> High AI attention - Primary focus regions</span>
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 bg-red-500 rounded-full shadow-md flex-shrink-0"></span>
+                          <span className="text-gray-300 text-sm sm:text-base"><strong>Red areas:</strong> High AI attention - Primary focus regions</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="inline-block w-6 h-6 bg-yellow-500 rounded-full shadow-md"></span>
-                          <span className="text-gray-300"><strong>Yellow areas:</strong> Moderate attention - Secondary regions</span>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 bg-yellow-500 rounded-full shadow-md flex-shrink-0"></span>
+                          <span className="text-gray-300 text-sm sm:text-base"><strong>Yellow areas:</strong> Moderate attention - Secondary regions</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="inline-block w-6 h-6 bg-blue-500 rounded-full shadow-md"></span>
-                          <span className="text-gray-300"><strong>Blue areas:</strong> Low attention - Background regions</span>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 bg-blue-500 rounded-full shadow-md flex-shrink-0"></span>
+                          <span className="text-gray-300 text-sm sm:text-base"><strong>Blue areas:</strong> Low attention - Background regions</span>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="bg-black/60 p-6 rounded-xl border border-gray-600/30 shadow-sm">
-                      <h4 className="font-semibold text-white mb-3 text-lg">Why This Matters:</h4>
-                      <p className="text-gray-300 leading-relaxed">
+                    <div className="bg-black/60 p-4 sm:p-6 rounded-xl border border-gray-600/30 shadow-sm">
+                      <h4 className="font-semibold text-white mb-2 sm:mb-3 text-base sm:text-lg">Why This Matters:</h4>
+                      <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
                         This visualization helps doctors verify that the AI is focusing on the right anatomical structures 
                         and not making decisions based on irrelevant image artifacts or background noise. The heatmap 
                         provides transparency into the AI's decision-making process.
                       </p>
                     </div>
                     
-                    <div className="bg-green-900/30 p-6 rounded-xl border border-green-600/30">
-                      <h4 className="font-semibold text-green-300 mb-3 text-lg">Clinical Value:</h4>
-                      <ul className="space-y-2 text-green-200">
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 font-bold mt-1">•</span>
+                    <div className="bg-green-900/30 p-4 sm:p-6 rounded-xl border border-green-600/30">
+                      <h4 className="font-semibold text-green-300 mb-2 sm:mb-3 text-base sm:text-lg">Clinical Value:</h4>
+                      <ul className="space-y-1 sm:space-y-2 text-green-200">
+                        <li className="flex items-start gap-2 text-sm sm:text-base">
+                          <span className="text-green-400 font-bold mt-1 flex-shrink-0">•</span>
                           <span>Validates AI reasoning for medical professionals</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 font-bold mt-1">•</span>
+                        <li className="flex items-start gap-2 text-sm sm:text-base">
+                          <span className="text-green-400 font-bold mt-1 flex-shrink-0">•</span>
                           <span>Identifies regions of interest for further examination</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 font-bold mt-1">•</span>
+                        <li className="flex items-start gap-2 text-sm sm:text-base">
+                          <span className="text-green-400 font-bold mt-1 flex-shrink-0">•</span>
                           <span>Builds trust through explainable AI technology</span>
                         </li>
                       </ul>
@@ -387,13 +390,13 @@ export default function ResultsPage() {
                   </div>
 
                   {/* Right Side - Large Grad-CAM Image */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-full max-w-lg">
+                  <div className="flex flex-col items-center order-1 lg:order-2">
+                    <div className="w-full max-w-sm sm:max-w-lg">
                       <img 
                         src={`data:image/png;base64,${result.gradcam}`}
                         alt="AI Attention Heatmap"
-                        className="w-full h-auto rounded-2xl shadow-2xl border-4 border-gray-600"
-                        style={{ minHeight: '400px', maxHeight: '600px', objectFit: 'contain' }}
+                        className="w-full h-auto rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-gray-600"
+                        style={{ minHeight: '250px', maxHeight: '400px', objectFit: 'contain' }}
                         onError={(e) => {
                           console.error('Failed to load Grad-CAM image');
                           const target = e.target as HTMLImageElement;
@@ -401,10 +404,10 @@ export default function ResultsPage() {
                           const parent = target.parentElement;
                           if (parent) {
                             parent.innerHTML = `
-                              <div class="w-full h-96 bg-gray-800 rounded-2xl border-4 border-gray-600 flex items-center justify-center">
+                              <div class="w-full h-64 sm:h-96 bg-gray-800 rounded-xl sm:rounded-2xl border-2 sm:border-4 border-gray-600 flex items-center justify-center">
                                 <div class="text-center text-gray-400">
-                                  <div class="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
-                                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
+                                    <svg class="h-6 w-6 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
                                   </div>
@@ -417,11 +420,11 @@ export default function ResultsPage() {
                         }}
                       />
                     </div>
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-gray-300 font-medium mb-2">
+                    <div className="mt-3 sm:mt-4 text-center">
+                      <p className="text-sm text-gray-300 font-medium mb-1 sm:mb-2">
                         AI Attention Heatmap Overlay
                       </p>
-                      <p className="text-xs text-gray-400 max-w-sm">
+                      <p className="text-xs text-gray-400 max-w-xs sm:max-w-sm px-2">
                         Red regions indicate where the AI model focused most when making its prediction
                       </p>
                     </div>
@@ -429,39 +432,39 @@ export default function ResultsPage() {
                 </div>
               ) : (
                 /* Fallback UI when Grad-CAM is not available */
-                <div className="text-center py-12">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-blue-900/30 rounded-full flex items-center justify-center border-2 border-blue-600/30">
-                    <Brain className="h-12 w-12 text-blue-400" />
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 bg-blue-900/30 rounded-full flex items-center justify-center border-2 border-blue-600/30">
+                    <Brain className="h-8 w-8 sm:h-12 sm:w-12 text-blue-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
                     AI Analysis Complete
                   </h3>
-                  <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+                  <p className="text-gray-300 mb-4 sm:mb-6 max-w-2xl mx-auto px-4 text-sm sm:text-base">
                     The AI has successfully analyzed your image and provided a prediction with {result.confidence.toFixed(1)}% confidence. 
                     While the detailed visualization is not available for this analysis, the core prediction remains reliable and accurate.
                   </p>
                   
-                  <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 p-6 rounded-xl border border-green-600/30">
-                      <CheckCircle className="h-8 w-8 text-green-400 mx-auto mb-4" />
-                      <h4 className="font-semibold text-green-300 mb-2">Analysis Completed</h4>
-                      <p className="text-green-200 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
+                    <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 p-4 sm:p-6 rounded-xl border border-green-600/30">
+                      <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-400 mx-auto mb-3 sm:mb-4" />
+                      <h4 className="font-semibold text-green-300 mb-2 text-sm sm:text-base">Analysis Completed</h4>
+                      <p className="text-green-200 text-xs sm:text-sm">
                         Your image has been processed using our advanced AI model with high accuracy standards.
                       </p>
                     </div>
                     
-                    <div className="bg-gradient-to-r from-blue-900/30 to-indigo-900/30 p-6 rounded-xl border border-blue-600/30">
-                      <Shield className="h-8 w-8 text-blue-400 mx-auto mb-4" />
-                      <h4 className="font-semibold text-blue-300 mb-2">Reliable Results</h4>
-                      <p className="text-blue-200 text-sm">
+                    <div className="bg-gradient-to-r from-blue-900/30 to-indigo-900/30 p-4 sm:p-6 rounded-xl border border-blue-600/30">
+                      <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mx-auto mb-3 sm:mb-4" />
+                      <h4 className="font-semibold text-blue-300 mb-2 text-sm sm:text-base">Reliable Results</h4>
+                      <p className="text-blue-200 text-xs sm:text-sm">
                         The prediction accuracy remains unaffected. Consult with healthcare professionals for next steps.
                       </p>
                     </div>
                   </div>
                   
-                  <div className="mt-8 p-4 bg-yellow-900/30 rounded-lg border border-yellow-600/30 max-w-2xl mx-auto">
-                    <Info className="h-5 w-5 text-yellow-400 mx-auto mb-2" />
-                    <p className="text-yellow-200 text-sm">
+                  <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-yellow-900/30 rounded-lg border border-yellow-600/30 max-w-2xl mx-auto">
+                    <Info className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mx-auto mb-2" />
+                    <p className="text-yellow-200 text-xs sm:text-sm">
                       <strong>Note:</strong> Visualization features may be temporarily unavailable due to system optimization for faster processing. 
                       This does not affect the accuracy or reliability of your results.
                     </p>
@@ -475,14 +478,14 @@ export default function ResultsPage() {
         
 
         {/* Clinical Interpretation */}
-        <Card className="mb-8 shadow-lg border border-gray-700/30 bg-black/40 backdrop-blur-xl">
-          <CardHeader className="border-b border-gray-600/30">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <FileText className="h-5 w-5" />
+        <Card className="mb-6 sm:mb-8 shadow-lg border border-gray-700/30 bg-black/40 backdrop-blur-xl">
+          <CardHeader className="border-b border-gray-600/30 p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-white text-lg sm:text-xl">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               Clinical Interpretation
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {result.prediction === 'benign' ? (
               <Alert className="border-green-600/30 bg-green-900/30">
                 <CheckCircle className="h-4 w-4 text-green-400" />
@@ -501,9 +504,9 @@ export default function ResultsPage() {
               </Alert>
             )}
 
-            <div className="mt-4 p-4 bg-blue-900/30 rounded-lg border border-blue-600/30">
-              <h4 className="font-semibold text-blue-300 mb-2">⚠️ Important Medical Disclaimer</h4>
-              <p className="text-sm text-blue-200">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-900/30 rounded-lg border border-blue-600/30">
+              <h4 className="font-semibold text-blue-300 mb-2 text-sm sm:text-base">⚠️ Important Medical Disclaimer</h4>
+              <p className="text-xs sm:text-sm text-blue-200">
                 This AI analysis is intended as a screening tool to assist healthcare professionals.
                 It should not be used as the sole basis for diagnosis or treatment decisions.
                 Always consult with qualified medical professionals for proper diagnosis and care.
@@ -513,33 +516,34 @@ export default function ResultsPage() {
         </Card>
 
         {/* Doctor Consultation Section */}
-        <Card className="mb-8 shadow-lg border-2 border-green-600/30 bg-black/40 backdrop-blur-xl">
-          <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-b border-gray-600/30">
-            <CardTitle className="flex items-center gap-2">
-              <Stethoscope className="h-5 w-5" />
-              Book Appointment with Verified Doctors
+        <Card className="mb-6 sm:mb-8 shadow-lg border-2 border-green-600/30 bg-black/40 backdrop-blur-xl">
+          <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-b border-gray-600/30 p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Stethoscope className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Book Appointment with Verified Doctors</span>
+              <span className="sm:hidden">Book Doctor Appointment</span>
             </CardTitle>
-            <CardDescription className="text-green-100">
+            <CardDescription className="text-green-100 text-sm sm:text-base">
               Connect with certified oncologists and breast cancer specialists
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="mb-4 p-4 bg-blue-900/30 rounded-lg border border-blue-600/30">
-              <h4 className="font-semibold text-blue-300 mb-2">Your AI Screening Summary</h4>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="text-center p-3 bg-black/60 rounded border border-gray-600/30">
-                  <p className="font-medium text-gray-300">Risk Level</p>
-                  <p className={`font-bold ${result.prediction === 'benign' ? 'text-green-400' : 'text-red-400'}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-blue-900/30 rounded-lg border border-blue-600/30">
+              <h4 className="font-semibold text-blue-300 mb-2 text-sm sm:text-base">Your AI Screening Summary</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
+                <div className="text-center p-2 sm:p-3 bg-black/60 rounded border border-gray-600/30">
+                  <p className="font-medium text-gray-300 text-xs sm:text-sm">Risk Level</p>
+                  <p className={`font-bold text-sm sm:text-base ${result.prediction === 'benign' ? 'text-green-400' : 'text-red-400'}`}>
                     {result.prediction === 'benign' ? 'Low' : 'High'}
                   </p>
                 </div>
-                <div className="text-center p-3 bg-black/60 rounded border border-gray-600/30">
-                  <p className="font-medium text-gray-300">AI Confidence</p>
-                  <p className="font-bold text-blue-400">{result.confidence.toFixed(1)}%</p>
+                <div className="text-center p-2 sm:p-3 bg-black/60 rounded border border-gray-600/30">
+                  <p className="font-medium text-gray-300 text-xs sm:text-sm">AI Confidence</p>
+                  <p className="font-bold text-blue-400 text-sm sm:text-base">{result.confidence.toFixed(1)}%</p>
                 </div>
-                <div className="text-center p-3 bg-black/60 rounded border border-gray-600/30">
-                  <p className="font-medium text-gray-300">Recommendation</p>
-                  <p className="text-sm font-medium text-gray-200">
+                <div className="text-center p-2 sm:p-3 bg-black/60 rounded border border-gray-600/30">
+                  <p className="font-medium text-gray-300 text-xs sm:text-sm">Recommendation</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-200">
                     {result.prediction === 'benign' ? 'Regular checkup' : 'Immediate consultation'}
                   </p>
                 </div>
@@ -559,29 +563,29 @@ export default function ResultsPage() {
         </Card>
 
         {/* Next Steps */}
-        <Card className="mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white border border-gray-600/30">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-center mb-6">What Would You Like to Do Next?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="mb-6 sm:mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white border border-gray-600/30">
+          <CardContent className="p-4 sm:p-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">What Would You Like to Do Next?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
               <Link href="/predict/tabular" className="block">
-                <div className="p-6 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all transform hover:scale-105 cursor-pointer border border-white/20">
-                  <FileText className="h-8 w-8 mx-auto mb-4" />
-                  <h4 className="font-bold text-center mb-2">New Data Analysis</h4>
-                  <p className="text-sm text-center opacity-90">Upload patient data for AI analysis</p>
+                <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all transform hover:scale-105 cursor-pointer border border-white/20">
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-3 sm:mb-4" />
+                  <h4 className="font-bold text-center mb-2 text-sm sm:text-base">New Data Analysis</h4>
+                  <p className="text-xs sm:text-sm text-center opacity-90">Upload patient data for AI analysis</p>
                 </div>
               </Link>
               <Link href="/predict/image" className="block">
-                <div className="p-6 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all transform hover:scale-105 cursor-pointer border border-white/20">
-                  <Activity className="h-8 w-8 mx-auto mb-4" />
-                  <h4 className="font-bold text-center mb-2">New Image Analysis</h4>
-                  <p className="text-sm text-center opacity-90">Upload medical images for detection</p>
+                <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all transform hover:scale-105 cursor-pointer border border-white/20">
+                  <Activity className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-3 sm:mb-4" />
+                  <h4 className="font-bold text-center mb-2 text-sm sm:text-base">New Image Analysis</h4>
+                  <p className="text-xs sm:text-sm text-center opacity-90">Upload medical images for detection</p>
                 </div>
               </Link>
               <Link href="/history" className="block">
-                <div className="p-6 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all transform hover:scale-105 cursor-pointer border border-white/20">
-                  <Clock className="h-8 w-8 mx-auto mb-4" />
-                  <h4 className="font-bold text-center mb-2">View History</h4>
-                  <p className="text-sm text-center opacity-90">Access all your previous reports</p>
+                <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all transform hover:scale-105 cursor-pointer border border-white/20">
+                  <Clock className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-3 sm:mb-4" />
+                  <h4 className="font-bold text-center mb-2 text-sm sm:text-base">View History</h4>
+                  <p className="text-xs sm:text-sm text-center opacity-90">Access all your previous reports</p>
                 </div>
               </Link>
             </div>
@@ -594,35 +598,37 @@ export default function ResultsPage() {
             ? 'bg-gradient-to-r from-green-900/40 to-emerald-900/40' 
             : 'bg-gradient-to-r from-blue-900/40 to-indigo-900/40'
         }`}>
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-black/40 rounded-full flex items-center justify-center shadow-lg border border-gray-600/30">
+          <CardContent className="p-4 sm:p-8 text-center">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-black/40 rounded-full flex items-center justify-center shadow-lg border border-gray-600/30">
               {result.prediction === 'benign' ? (
-                <Heart className="h-8 w-8 text-green-400" />
+                <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-green-400" />
               ) : (
-                <Shield className="h-8 w-8 text-blue-400" />
+                <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
               )}
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">
+            <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 sm:mb-3 px-2">
               {result.prediction === 'benign'
                 ? '🎉 Stay Healthy & Keep Smiling!'
                 : '💪 You Are Not Alone in This Journey'}
             </h3>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-6">
+            <p className="text-gray-300 text-sm sm:text-lg max-w-2xl mx-auto mb-4 sm:mb-6 px-4">
               {result.prediction === 'benign'
                 ? 'Your results look great! Continue with regular checkups and maintain a healthy lifestyle.'
                 : 'Early detection saves lives. With proper treatment and support, many people successfully overcome breast cancer.'}
             </p>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Badge className="px-4 py-2 bg-black/40 text-gray-300 shadow-md border border-gray-600/30">
-                <Heart className="h-4 w-4 mr-2" />
-                Trusted by 10,000+ users
+            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
+              <Badge className="px-2 sm:px-4 py-1 sm:py-2 bg-black/40 text-gray-300 shadow-md border border-gray-600/30 text-xs sm:text-sm">
+                <Heart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">Trusted by 10,000+ users</span>
+                <span className="xs:hidden">10k+ Users</span>
               </Badge>
-              <Badge className="px-4 py-2 bg-black/40 text-gray-300 shadow-md border border-gray-600/30">
-                <Shield className="h-4 w-4 mr-2" />
-                HIPAA Compliant
+              <Badge className="px-2 sm:px-4 py-1 sm:py-2 bg-black/40 text-gray-300 shadow-md border border-gray-600/30 text-xs sm:text-sm">
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">HIPAA Compliant</span>
+                <span className="xs:hidden">HIPAA</span>
               </Badge>
-              <Badge className="px-4 py-2 bg-black/40 text-gray-300 shadow-md border border-gray-600/30">
-                <Award className="h-4 w-4 mr-2" />
+              <Badge className="px-2 sm:px-4 py-1 sm:py-2 bg-black/40 text-gray-300 shadow-md border border-gray-600/30 text-xs sm:text-sm">
+                <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 {result.modelMetrics.accuracy}% Accuracy
               </Badge>
             </div>
