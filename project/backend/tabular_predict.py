@@ -2,7 +2,7 @@
 """
 MEMORY-OPTIMIZED tabular prediction:
 - Load models on-demand only
-- No SHAP for memory efficiency
+- No scikit-learn dependency (removed for Python 3.13 compatibility)
 - Explicit cleanup
 """
 
@@ -18,7 +18,6 @@ if ROOT_DIR not in sys.path:
 import joblib
 import numpy as np
 import pandas as pd
-from utils.preprocessing import select_mean_features, get_tabular_dataset
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
 
@@ -34,20 +33,22 @@ def load_tabular_model():
     model = joblib.load(model_path)
     scaler = joblib.load(scaler_path)
     
-    # Get selected feature names
-    X_df, _ = get_tabular_dataset()
-    selected_cols = select_mean_features(X_df, n=10)
+    # Hardcoded selected feature names (from Wisconsin breast cancer dataset)
+    selected_cols = [
+        'mean radius', 'mean texture', 'mean perimeter', 'mean area', 'mean smoothness',
+        'mean compactness', 'mean concavity', 'mean concave points', 'mean symmetry', 'mean fractal dimension'
+    ]
     
-    print("✅ Tabular model loaded (memory-optimized)")
+    print("✅ Tabular model loaded (memory-optimized, no scikit-learn)")
     return model, scaler, selected_cols
 
 def predict_tabular_memory_safe(model, scaler, feature_dict, selected_cols):
     """
-    Memory-safe tabular prediction without SHAP
+    Memory-safe tabular prediction without scikit-learn dependency
     
     Args:
         model: XGBoost model
-        scaler: StandardScaler
+        scaler: StandardScaler (from joblib)
         feature_dict: Input features as dict
         selected_cols: Feature column names
     
