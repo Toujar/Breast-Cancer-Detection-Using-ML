@@ -18,10 +18,16 @@ import {
 export default function ResearchPage() {
   const papers = [
     {
-      title: 'Breast Cancer Wisconsin (Diagnostic) Dataset',
-      venue: 'UCI Machine Learning Repository',
-      link: 'https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic',
-      tags: ['Dataset', 'Tabular'],
+      title: 'Breast Ultrasound Images Dataset (BUSI)',
+      venue: 'Data in Brief, Elsevier 2020',
+      link: 'https://www.sciencedirect.com/science/article/pii/S2352340919312181',
+      tags: ['Dataset', 'Ultrasound Images'],
+    },
+    {
+      title: 'EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks',
+      venue: 'ICML 2019',
+      link: 'https://arxiv.org/abs/1905.11946',
+      tags: ['CNN', 'EfficientNet', 'Vision'],
     },
     {
       title: 'Deep Residual Learning for Image Recognition',
@@ -107,7 +113,8 @@ export default function ResearchPage() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-gray-700">
               <div>• Resizing and normalization to 224×224</div>
-              <div>• CNN backbone based on ResNet</div>
+              <div>• CNN backbone based on EfficientNet-B0</div>
+              <div>• Transfer learning from ImageNet</div>
               <div>• ONNX runtime for efficient inference</div>
             </CardContent>
           </Card>

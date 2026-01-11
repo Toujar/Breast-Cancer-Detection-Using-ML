@@ -141,9 +141,9 @@ export default function TabularPredictionPage() {
         <Alert className="mb-8 border-blue-500/30 bg-blue-900/20 backdrop-blur-sm">
           <Info className="h-4 w-4 text-blue-400" />
           <AlertDescription className="text-blue-200">
-            <strong>Dataset Information:</strong> This model was trained on the Wisconsin Breast Cancer Dataset 
-            with 569 samples and 30 features, achieving 97.8% accuracy in distinguishing between 
-            benign and malignant cases.
+            <strong>Dataset Information:</strong> This tabular model was trained on the Wisconsin Breast Cancer Dataset 
+            with 569 samples and 30 cellular features, achieving 97.8% accuracy. For image analysis, we use 
+            EfficientNet trained on the BUSI ultrasound dataset (780 images, 96.8% accuracy).
           </AlertDescription>
         </Alert>
 
@@ -204,11 +204,11 @@ export default function TabularPredictionPage() {
                     <p className="text-sm font-medium text-blue-200">AI Model Active</p>
                     <p className="text-xs text-blue-300">Random Forest Classifier</p>
                   </div>
+                  <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Architecture:</span>
                       <span className="font-medium text-white">XGBoost</span>
                     </div>
-                  <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Model Version:</span>
                       <span className="font-medium text-white">v2.1.0</span>

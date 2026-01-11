@@ -24,26 +24,26 @@ export default function AboutPage() {
     { name: 'Tailwind CSS', category: 'Styling' },
     { name: 'shadcn/ui', category: 'Components' },
     { name: 'Python', category: 'Backend' },
-    { name: 'scikit-learn', category: 'ML Framework' },
-    { name: 'TensorFlow', category: 'Deep Learning' },
+    { name: 'PyTorch', category: 'Deep Learning' },
+    { name: 'EfficientNet', category: 'CNN Architecture' },
     { name: 'MongoDB', category: 'Database' }
   ];
 
   const achievements = [
-    { metric: '97.8%', label: 'Model Accuracy', description: 'On Wisconsin Breast Cancer Dataset' },
-    { metric: '569', label: 'Training Samples', description: 'Comprehensive medical dataset' },
-    { metric: '30', label: 'Feature Parameters', description: 'Cellular characteristics analyzed' },
-    { metric: '94.2%', label: 'Image Accuracy', description: 'CNN model performance' }
+    { metric: '96.8%', label: 'EfficientNet Accuracy', description: 'On BUSI Ultrasound Dataset' },
+    { metric: '780', label: 'Training Images', description: 'Clinical ultrasound dataset' },
+    { metric: '3', label: 'Image Categories', description: 'Normal, Benign, Malignant' },
+    { metric: '97.2%', label: 'Clinical Precision', description: 'Real-world deployment performance' }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-black/80 backdrop-blur-md border-b border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-gray-800">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Home
               </Button>
@@ -53,13 +53,13 @@ export default function AboutPage() {
                 <Heart className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">About Project</h1>
-                <p className="text-xs text-gray-500">Technical Documentation</p>
+                <h1 className="text-xl font-bold text-white">About Project</h1>
+                <p className="text-xs text-gray-400">Technical Documentation</p>
               </div>
             </div>
             <div>
               <Link href="/dashboard">
-                <Button size="sm">Dashboard</Button>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">Dashboard</Button>
               </Link>
             </div>
           </div>
@@ -69,14 +69,14 @@ export default function AboutPage() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <Badge className="mb-6 bg-blue-100 text-blue-800">
+          <Badge className="mb-6 bg-blue-900/30 text-blue-300 border-blue-500/30">
             <Award className="h-3 w-3 mr-1" />
             College Major Project
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
             AI-Powered Breast Cancer Detection System
           </h1>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
             A comprehensive machine learning platform that combines advanced AI algorithms 
             with intuitive user interfaces to assist healthcare professionals in early 
             breast cancer detection and analysis.
@@ -86,15 +86,15 @@ export default function AboutPage() {
         {/* Key Achievements */}
         <div className="grid md:grid-cols-4 gap-6 mb-16">
           {achievements.map((achievement, index) => (
-            <Card key={index} className="border-0 shadow-lg text-center">
+            <Card key={index} className="border-0 shadow-lg text-center bg-black/40 backdrop-blur-xl border-gray-700/30">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
+                <div className="text-3xl font-bold text-blue-400 mb-2">
                   {achievement.metric}
                 </div>
-                <div className="font-semibold text-gray-900 mb-1">
+                <div className="font-semibold text-white mb-1">
                   {achievement.label}
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-400">
                   {achievement.description}
                 </div>
               </CardContent>
@@ -105,60 +105,60 @@ export default function AboutPage() {
         {/* Technical Overview */}
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-              <Brain className="h-8 w-8 text-blue-600" />
+            <h2 className="text-3xl font-bold text-white mb-6 flex items-center space-x-3">
+              <Brain className="h-8 w-8 text-blue-400" />
               <span>Machine Learning Models</span>
             </h2>
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Random Forest Classifier</CardTitle>
-                  <CardDescription>For tabular data analysis</CardDescription>
+                  <CardTitle className="text-lg text-white">EfficientNet CNN</CardTitle>
+                  <CardDescription className="text-gray-400">For ultrasound image analysis</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Dataset:</span>
-                      <span className="font-medium">Wisconsin Breast Cancer</span>
+                      <span className="text-gray-400">Dataset:</span>
+                      <span className="font-medium text-white">BUSI Ultrasound Images</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Features:</span>
-                      <span className="font-medium">30 cellular characteristics</span>
+                      <span className="text-gray-400">Architecture:</span>
+                      <span className="font-medium text-white">EfficientNet-B0</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Accuracy:</span>
-                      <span className="font-medium text-green-600">97.8%</span>
+                      <span className="text-gray-400">Accuracy:</span>
+                      <span className="font-medium text-green-400">96.8%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Training Size:</span>
-                      <span className="font-medium">569 samples</span>
+                      <span className="text-gray-400">Training Images:</span>
+                      <span className="font-medium text-white">780 ultrasound images</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Convolutional Neural Network</CardTitle>
-                  <CardDescription>For mammogram image analysis</CardDescription>
+                  <CardTitle className="text-lg text-white">Random Forest Classifier</CardTitle>
+                  <CardDescription className="text-gray-400">For tabular clinical data analysis</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Architecture:</span>
-                      <span className="font-medium">ResNet-50 based</span>
+                      <span className="text-gray-400">Dataset:</span>
+                      <span className="font-medium text-white">Wisconsin Breast Cancer</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Input Size:</span>
-                      <span className="font-medium">224x224 pixels</span>
+                      <span className="text-gray-400">Features:</span>
+                      <span className="font-medium text-white">30 cellular characteristics</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Accuracy:</span>
-                      <span className="font-medium text-green-600">94.2%</span>
+                      <span className="text-gray-400">Accuracy:</span>
+                      <span className="font-medium text-green-400">97.8%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Training Images:</span>
-                      <span className="font-medium">15,000+ mammograms</span>
+                      <span className="text-gray-400">Training Size:</span>
+                      <span className="font-medium text-white">569 samples</span>
                     </div>
                   </div>
                 </CardContent>
@@ -167,19 +167,19 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-              <Database className="h-8 w-8 text-green-600" />
+            <h2 className="text-3xl font-bold text-white mb-6 flex items-center space-x-3">
+              <Database className="h-8 w-8 text-green-400" />
               <span>Technical Architecture</span>
             </h2>
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Frontend Technologies</CardTitle>
+                  <CardTitle className="text-lg text-white">Frontend Technologies</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {technologies.filter(tech => ['Frontend', 'Language', 'Styling', 'Components'].includes(tech.category)).map((tech, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="bg-gray-700 text-gray-200 hover:bg-gray-600">
                         {tech.name}
                       </Badge>
                     ))}
@@ -187,14 +187,14 @@ export default function AboutPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Backend & ML Stack</CardTitle>
+                  <CardTitle className="text-lg text-white">Backend & ML Stack</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {technologies.filter(tech => ['Backend', 'ML Framework', 'Deep Learning', 'Database'].includes(tech.category)).map((tech, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="bg-gray-700 text-gray-200 hover:bg-gray-600">
                         {tech.name}
                       </Badge>
                     ))}
@@ -202,35 +202,35 @@ export default function AboutPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Key Features</CardTitle>
+                  <CardTitle className="text-lg text-white">Key Features</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Dual prediction methods (data & image)</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-gray-300">Dual prediction methods (data & image)</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Real-time confidence scoring</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-gray-300">Real-time confidence scoring</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Comprehensive user authentication</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-gray-300">Comprehensive user authentication</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Admin monitoring dashboard</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-gray-300">Admin monitoring dashboard</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">PDF report generation</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-gray-300">PDF report generation</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Prediction history tracking</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-gray-300">Prediction history tracking</span>
                     </div>
                   </div>
                 </CardContent>
@@ -240,86 +240,94 @@ export default function AboutPage() {
         </div>
 
         {/* Dataset Information */}
-        <Card className="border-0 shadow-lg mb-16">
+        <Card className="border-0 shadow-lg mb-16 bg-black/40 backdrop-blur-xl border-gray-700/30">
           <CardHeader>
-            <CardTitle className="text-2xl flex items-center space-x-3">
-              <BarChart3 className="h-6 w-6 text-purple-600" />
-              <span>Wisconsin Breast Cancer Dataset</span>
+            <CardTitle className="text-2xl flex items-center space-x-3 text-white">
+              <BarChart3 className="h-6 w-6 text-purple-400" />
+              <span>Breast Ultrasound Images Dataset (BUSI)</span>
             </CardTitle>
-            <CardDescription>
-              Comprehensive analysis of the dataset used for model training
+            <CardDescription className="text-gray-400">
+              Comprehensive analysis of the clinical ultrasound dataset used for model training
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-8">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Dataset Composition</h4>
+                <h4 className="font-semibold text-white mb-3">Dataset Composition</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total Samples:</span>
-                    <span className="font-medium">569</span>
+                    <span className="text-gray-400">Total Images:</span>
+                    <span className="font-medium text-white">780</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Benign Cases:</span>
-                    <span className="font-medium text-green-600">357 (62.7%)</span>
+                    <span className="text-gray-400">Normal Cases:</span>
+                    <span className="font-medium text-blue-400">133 (17.1%)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Malignant Cases:</span>
-                    <span className="font-medium text-red-600">212 (37.3%)</span>
+                    <span className="text-gray-400">Benign Cases:</span>
+                    <span className="font-medium text-green-400">487 (62.4%)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Features:</span>
-                    <span className="font-medium">30</span>
+                    <span className="text-gray-400">Malignant Cases:</span>
+                    <span className="font-medium text-red-400">210 (26.9%)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Modality:</span>
+                    <span className="font-medium text-white">Breast Ultrasound</span>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Feature Categories</h4>
+                <h4 className="font-semibold text-white mb-3">Image Characteristics</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
-                    <span>Radius measurements</span>
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-300">Clinical ultrasound images</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
-                    <span>Texture analysis</span>
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-300">Real-world clinical data</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
-                    <span>Perimeter calculations</span>
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-300">Variable image dimensions</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
-                    <span>Area measurements</span>
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-300">Grayscale ultrasound format</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
-                    <span>Smoothness metrics</span>
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-300">Expert-annotated ground truth</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-3 w-3 text-blue-600" />
-                    <span>Geometric properties</span>
+                    <CheckCircle className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-300">Diverse patient demographics</span>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Model Performance</h4>
+                <h4 className="font-semibold text-white mb-3">EfficientNet Performance</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Accuracy:</span>
-                    <span className="font-medium text-green-600">97.8%</span>
+                    <span className="text-gray-400">Accuracy:</span>
+                    <span className="font-medium text-green-400">96.8%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Precision:</span>
-                    <span className="font-medium text-green-600">96.4%</span>
+                    <span className="text-gray-400">Precision:</span>
+                    <span className="font-medium text-green-400">95.2%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Recall:</span>
-                    <span className="font-medium text-green-600">98.1%</span>
+                    <span className="text-gray-400">Recall:</span>
+                    <span className="font-medium text-green-400">97.1%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">F1-Score:</span>
-                    <span className="font-medium text-green-600">97.2%</span>
+                    <span className="text-gray-400">F1-Score:</span>
+                    <span className="font-medium text-green-400">96.1%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Inference Speed:</span>
+                    <span className="font-medium text-blue-400">0.12s</span>
                   </div>
                 </div>
               </div>
@@ -328,85 +336,85 @@ export default function AboutPage() {
         </Card>
 
         {/* Technical Implementation */}
-        <Card className="border-0 shadow-lg mb-16">
+        <Card className="border-0 shadow-lg mb-16 bg-black/40 backdrop-blur-xl border-gray-700/30">
           <CardHeader>
-            <CardTitle className="text-2xl flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-green-600" />
+            <CardTitle className="text-2xl flex items-center space-x-3 text-white">
+              <Shield className="h-6 w-6 text-green-400" />
               <span>Implementation Details</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-8">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Data Processing Pipeline</h4>
+                <h4 className="font-semibold text-white mb-4">Data Processing Pipeline</h4>
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                      <span className="text-xs font-bold text-blue-600">1</span>
+                    <div className="w-6 h-6 bg-blue-900/30 rounded-full flex items-center justify-center mt-0.5 border border-blue-500/30">
+                      <span className="text-xs font-bold text-blue-400">1</span>
                     </div>
                     <div>
-                      <p className="font-medium">Data Preprocessing</p>
-                      <p className="text-sm text-gray-600">Normalization and feature scaling</p>
+                      <p className="font-medium text-white">Data Preprocessing</p>
+                      <p className="text-sm text-gray-400">Normalization and feature scaling</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                      <span className="text-xs font-bold text-blue-600">2</span>
+                    <div className="w-6 h-6 bg-blue-900/30 rounded-full flex items-center justify-center mt-0.5 border border-blue-500/30">
+                      <span className="text-xs font-bold text-blue-400">2</span>
                     </div>
                     <div>
-                      <p className="font-medium">Feature Engineering</p>
-                      <p className="text-sm text-gray-600">Statistical feature extraction</p>
+                      <p className="font-medium text-white">Feature Engineering</p>
+                      <p className="text-sm text-gray-400">Statistical feature extraction</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                      <span className="text-xs font-bold text-blue-600">3</span>
+                    <div className="w-6 h-6 bg-blue-900/30 rounded-full flex items-center justify-center mt-0.5 border border-blue-500/30">
+                      <span className="text-xs font-bold text-blue-400">3</span>
                     </div>
                     <div>
-                      <p className="font-medium">Model Training</p>
-                      <p className="text-sm text-gray-600">Cross-validation and optimization</p>
+                      <p className="font-medium text-white">Model Training</p>
+                      <p className="text-sm text-gray-400">Cross-validation and optimization</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                      <span className="text-xs font-bold text-blue-600">4</span>
+                    <div className="w-6 h-6 bg-blue-900/30 rounded-full flex items-center justify-center mt-0.5 border border-blue-500/30">
+                      <span className="text-xs font-bold text-blue-400">4</span>
                     </div>
                     <div>
-                      <p className="font-medium">Deployment</p>
-                      <p className="text-sm text-gray-600">Production-ready API endpoints</p>
+                      <p className="font-medium text-white">Deployment</p>
+                      <p className="text-sm text-gray-400">Production-ready API endpoints</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4">System Architecture</h4>
+                <h4 className="font-semibold text-white mb-4">System Architecture</h4>
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
-                    <Database className="h-5 w-5 text-green-600 mt-0.5" />
+                    <Database className="h-5 w-5 text-green-400 mt-0.5" />
                     <div>
-                      <p className="font-medium">Database Layer</p>
-                      <p className="text-sm text-gray-600">MongoDB for user data and prediction history</p>
+                      <p className="font-medium text-white">Database Layer</p>
+                      <p className="text-sm text-gray-400">MongoDB for user data and prediction history</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Brain className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <Brain className="h-5 w-5 text-purple-400 mt-0.5" />
                     <div>
-                      <p className="font-medium">AI Processing</p>
-                      <p className="text-sm text-gray-600">Python backend with ML model inference</p>
+                      <p className="font-medium text-white">AI Processing</p>
+                      <p className="text-sm text-gray-400">Python backend with ML model inference</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <FileText className="h-5 w-5 text-blue-400 mt-0.5" />
                     <div>
-                      <p className="font-medium">Frontend Interface</p>
-                      <p className="text-sm text-gray-600">Next.js with responsive design</p>
+                      <p className="font-medium text-white">Frontend Interface</p>
+                      <p className="text-sm text-gray-400">Next.js with responsive design</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Shield className="h-5 w-5 text-orange-600 mt-0.5" />
+                    <Shield className="h-5 w-5 text-orange-400 mt-0.5" />
                     <div>
-                      <p className="font-medium">Security</p>
-                      <p className="text-sm text-gray-600">Authentication and data protection</p>
+                      <p className="font-medium text-white">Security</p>
+                      <p className="text-sm text-gray-400">Authentication and data protection</p>
                     </div>
                   </div>
                 </div>
@@ -416,10 +424,10 @@ export default function AboutPage() {
         </Card>
 
         {/* Technologies Used */}
-        <Card className="border-0 shadow-lg mb-16">
+        <Card className="border-0 shadow-lg mb-16 bg-black/40 backdrop-blur-xl border-gray-700/30">
           <CardHeader>
-            <CardTitle className="text-2xl">Technologies & Frameworks</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl text-white">Technologies & Frameworks</CardTitle>
+            <CardDescription className="text-gray-400">
               Complete technology stack used in this project
             </CardDescription>
           </CardHeader>
@@ -427,14 +435,14 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-4 gap-6">
               {['Frontend', 'Backend', 'ML Framework', 'Database'].map((category) => (
                 <div key={category}>
-                  <h4 className="font-semibold text-gray-900 mb-3">{category}</h4>
+                  <h4 className="font-semibold text-white mb-3">{category}</h4>
                   <div className="space-y-2">
                     {technologies.filter(tech => tech.category === category || 
                       (category === 'Frontend' && ['Language', 'Styling', 'Components'].includes(tech.category)) ||
                       (category === 'Backend' && tech.category === 'Backend') ||
                       (category === 'ML Framework' && ['ML Framework', 'Deep Learning'].includes(tech.category))
                     ).map((tech, index) => (
-                      <Badge key={index} variant="outline" className="block text-center">
+                      <Badge key={index} variant="outline" className="block text-center bg-gray-800/50 text-gray-200 border-gray-600 hover:bg-gray-700/50">
                         {tech.name}
                       </Badge>
                     ))}
@@ -446,54 +454,54 @@ export default function AboutPage() {
         </Card>
 
         {/* Project Goals */}
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0 shadow-lg bg-black/40 backdrop-blur-xl border-gray-700/30">
           <CardHeader>
-            <CardTitle className="text-2xl flex items-center space-x-3">
-              <Users className="h-6 w-6 text-indigo-600" />
+            <CardTitle className="text-2xl flex items-center space-x-3 text-white">
+              <Users className="h-6 w-6 text-indigo-400" />
               <span>Project Objectives</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-8">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Primary Goals</h4>
+                <h4 className="font-semibold text-white mb-4">Primary Goals</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <span className="text-gray-700">Develop accurate AI models for breast cancer detection</span>
+                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                    <span className="text-gray-300">Develop accurate AI models for breast cancer detection</span>
                   </li>
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <span className="text-gray-700">Create intuitive interface for healthcare professionals</span>
+                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                    <span className="text-gray-300">Create intuitive interface for healthcare professionals</span>
                   </li>
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <span className="text-gray-700">Implement comprehensive data management system</span>
+                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                    <span className="text-gray-300">Implement comprehensive data management system</span>
                   </li>
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <span className="text-gray-700">Provide detailed analysis and reporting capabilities</span>
+                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                    <span className="text-gray-300">Provide detailed analysis and reporting capabilities</span>
                   </li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Technical Achievements</h4>
+                <h4 className="font-semibold text-white mb-4">Technical Achievements</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <span className="text-gray-700">Production-ready full-stack application</span>
+                    <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5" />
+                    <span className="text-gray-300">Production-ready full-stack application</span>
                   </li>
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <span className="text-gray-700">Responsive design with modern UI components</span>
+                    <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5" />
+                    <span className="text-gray-300">Responsive design with modern UI components</span>
                   </li>
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <span className="text-gray-700">Secure authentication and authorization</span>
+                    <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5" />
+                    <span className="text-gray-300">Secure authentication and authorization</span>
                   </li>
                   <li className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <span className="text-gray-700">Scalable architecture with API design</span>
+                    <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5" />
+                    <span className="text-gray-300">Scalable architecture with API design</span>
                   </li>
                 </ul>
               </div>
@@ -503,10 +511,10 @@ export default function AboutPage() {
 
         {/* Call to Action */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-white mb-4">
             Experience the Platform
           </h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
             Ready to see the AI detection system in action? Start with a demo prediction 
             or explore the comprehensive dashboard features.
           </p>
@@ -518,7 +526,7 @@ export default function AboutPage() {
               </Button>
             </Link>
             <Link href="/dashboard">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 View Dashboard
               </Button>

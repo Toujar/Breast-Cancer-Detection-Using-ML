@@ -94,7 +94,7 @@ export default function ImagePredictionPage() {
         toast.success('Image analysis completed!');
         router.push(`/results/${result.predictionId}`);
       } else {
-        setError('Image analysis failed. Please try again.');
+        setError('Invalid image detected. Please upload a breast ultrasound image.');
       }
     } catch (error) {
       setError('Network error. Please check your connection.');
@@ -127,10 +127,10 @@ export default function ImagePredictionPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-4 flex items-center space-x-3">
             <ImageIcon className="h-8 w-8 text-blue-400" />
-            <span>Mammogram Image Analysis</span>
+            <span>Breast Ultrasound Image Analysis</span>
           </h1>
           <p className="text-gray-300 leading-relaxed">
-            Upload a mammogram image for AI-powered analysis. Our convolutional neural network 
+            Upload a breast ultrasound image for AI-powered analysis. Our EfficientNet model 
             will examine the image and provide predictions with confidence scores.
           </p>
         </div>
@@ -139,8 +139,8 @@ export default function ImagePredictionPage() {
         <Alert className="mb-8 border-blue-500/30 bg-blue-900/20 backdrop-blur-sm">
           <Info className="h-4 w-4 text-blue-400" />
           <AlertDescription className="text-blue-200">
-            <strong>Supported Formats:</strong> JPEG, PNG, TIFF, DICOM. Maximum file size: 10MB. 
-            For best results, use high-resolution mammogram images with clear tissue definition.
+            <strong>Supported Formats:</strong> JPEG, PNG, TIFF. Maximum file size: 10MB. 
+            For best results, use high-resolution breast ultrasound images with clear tissue definition.
           </AlertDescription>
         </Alert>
 
@@ -152,10 +152,10 @@ export default function ImagePredictionPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-white">
                     <Upload className="h-5 w-5" />
-                    <span>Upload Mammogram</span>
+                    <span>Upload Ultrasound Image</span>
                   </CardTitle>
                   <CardDescription className="text-gray-300">
-                    Select or drag and drop a mammogram image for analysis
+                    Select or drag and drop a breast ultrasound image for analysis
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -181,7 +181,7 @@ export default function ImagePredictionPage() {
                     >
                       <FileImage className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-white mb-2">
-                        Upload Mammogram Image
+                        Upload Ultrasound Image
                       </h3>
                       <p className="text-gray-300 mb-6">
                         Drag and drop your image here, or click to browse
@@ -212,7 +212,7 @@ export default function ImagePredictionPage() {
                       <div className="relative">
                         <img
                           src={previewUrl || ''}
-                          alt="Mammogram preview"
+                          alt="Ultrasound preview"
                           className="w-full max-h-96 object-contain rounded-lg border border-gray-600"
                         />
                         <div className="absolute top-4 right-4">
@@ -275,7 +275,7 @@ export default function ImagePredictionPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Architecture:</span>
-                      <span className="font-medium text-white">DenseNet-121</span>
+                      <span className="font-medium text-white">EfficientNet</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Input Size:</span>
@@ -283,11 +283,11 @@ export default function ImagePredictionPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Accuracy:</span>
-                      <span className="font-medium text-green-400">94.2%</span>
+                      <span className="font-medium text-green-400">96.8%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Training Set:</span>
-                      <span className="font-medium text-white">15K+ Images</span>
+                      <span className="font-medium text-white">780 Ultrasound Images</span>
                     </div>
                   </div>
                 </CardContent>

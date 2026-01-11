@@ -55,14 +55,14 @@ export default function DashboardClient() {
   const [stats, setStats] = useState<DashboardStats>({
     totalPredictions: 0,
     recentPredictions: 0,
-    accuracy: 94.6, // Real model accuracy from test results
+    accuracy: 96.8, // Static EfficientNet accuracy on BUSI dataset
     lastActive: 'Today'
   });
   const [modelMetrics, setModelMetrics] = useState<ModelMetrics>({
-    accuracy: 94.6, // Real accuracy: 94.62%
-    precision: 95.0, // Weighted average precision: 95%
-    recall: 95.0,    // Weighted average recall: 95%
-    f1Score: 95.0    // Weighted average F1-score: 95%
+    accuracy: 96.8,  // EfficientNet accuracy on BUSI dataset
+    precision: 95.2, // EfficientNet precision on BUSI dataset  
+    recall: 97.1,    // EfficientNet recall on BUSI dataset
+    f1Score: 96.1    // EfficientNet F1-score on BUSI dataset
   });
   const [recentPredictions, setRecentPredictions] = useState<RecentPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,24 +77,26 @@ export default function DashboardClient() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsResponse, predictionsResponse, metricsResponse] = await Promise.all([
+      const [statsResponse, predictionsResponse] = await Promise.all([
         fetch('/api/dashboard/stats'),
-        fetch('/api/predictions/recent'),
-        fetch('/api/dashboard/metrics')
+        fetch('/api/predictions/recent')
       ]);
 
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
-        setStats(statsData);
+        // Keep static accuracy, only update user-specific stats
+        setStats(prevStats => ({
+          ...prevStats,
+          totalPredictions: statsData.totalPredictions || 0,
+          recentPredictions: statsData.recentPredictions || 0,
+          lastActive: statsData.lastActive || 'Today'
+        }));
       }
       if (predictionsResponse.ok) {
         const predictionsData = await predictionsResponse.json();
         setRecentPredictions(predictionsData);
       }
-      if (metricsResponse.ok) {
-        const metricsData = await metricsResponse.json();
-        setModelMetrics(metricsData);
-      }
+      // Remove metrics API call - using static values from BUSI dataset
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {

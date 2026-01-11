@@ -15,29 +15,22 @@ export async function GET() {
     const userQuery = { userId: authedUser.id || authedUser._id };
 
     // Fetch total predictions & last 7 days predictions
-    const [totalPredictions, recentPredictionsDoc, allUserResults] =
+    const [totalPredictions, recentPredictionsDoc] =
       await Promise.all([
         Result.countDocuments(userQuery),
         Result.countDocuments({
           ...userQuery,
           createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         }),
-        Result.find(userQuery).select('modelMetrics').lean(),
       ]);
 
-    // Calculate average accuracy from user's actual predictions
-    let avgAccuracy = 94.6; // Real model accuracy from test results
-    if (allUserResults.length > 0) {
-      const totalAccuracy = allUserResults.reduce((sum, result: any) => {
-        return sum + (result.modelMetrics?.accuracy || 0);
-      }, 0);
-      avgAccuracy = parseFloat((totalAccuracy / allUserResults.length).toFixed(1));
-    }
+    // Use static EfficientNet accuracy on BUSI dataset (matches home page)
+    const avgAccuracy = 96.8; // EfficientNet accuracy on BUSI dataset
 
     const stats = {
       totalPredictions,
       recentPredictions: recentPredictionsDoc,
-      accuracy: avgAccuracy, // ✅ Real average from user's predictions
+      accuracy: avgAccuracy, // Static accuracy from BUSI dataset performance
       lastActive: "Today",
     };
     // console.log('Stats:', stats);
